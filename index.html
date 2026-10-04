@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>BestMate Outreach Dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600&display=swap">
+<style>
+/* Layout: SaaS app shell. Left sidebar (top strip on phones), page header with the primary action, one view at a time; lead record is a right drawer, import/add is a centered modal. Single bright theme by request. */
+:root{
+  color-scheme:light;
+  --bg:#ffffff; --subtle:#f6f7f9; --line:#e3e6eb; --fg:#101828; --muted:#5b6577;
+  --pri:#2356e0; --pri-soft:#e9effd; --on-pri:#ffffff;
+  --good:#0f7a55; --good-soft:#e2f5ec; --warn:#a85b06; --warn-soft:#fdf0d9; --bad:#c2302a; --bad-soft:#fde9e7;
+  --shade:rgba(16,24,40,.42); --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.05);
+  --font:"Geist","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.5}
+.app{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:100%}
+aside.side{background:var(--subtle);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.brand{font-weight:700;font-size:17px;padding:4px 10px 14px;display:flex;align-items:center;gap:8px}
+.brand i{width:22px;height:22px;border-radius:6px;background:var(--pri);display:inline-block}
+.side button{display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 15px var(--font);color:var(--muted);background:none;border:0;border-radius:6px;padding:9px 10px;cursor:pointer;text-align:left;white-space:nowrap}
+.side button:hover{background:var(--line)}
+.side button[aria-current="page"]{background:var(--bg);color:var(--fg);font-weight:700;box-shadow:var(--shadow)}
+.cnt{font-size:12px;font-weight:700;background:var(--line);color:var(--muted);border-radius:99px;padding:1px 8px}
+.cnt.hot{background:var(--bad);color:var(--on-pri)}
+.sample{margin-top:auto;font-size:12.5px;color:var(--muted);padding:10px;border:1px dashed var(--line);border-radius:6px;white-space:normal}
+main{padding-inline:28px;padding-block:22px 64px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.head h1{font-size:24px;margin:0;font-weight:700}
+.head .sub{color:var(--muted);font-size:14px}
+.head .sp{margin-left:auto}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,tr:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.btn{font:700 14px var(--font);border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:6px;padding:8px 14px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
+.btn:hover{background:var(--subtle)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:var(--on-pri)} .btn.pri:hover{filter:brightness(.94)}
+.btn.dan{color:var(--bad)} .btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.link{background:none;border:0;color:var(--pri);font:700 14px var(--font);cursor:pointer;padding:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg button{font:400 13.5px var(--font);background:var(--bg);color:var(--muted);border:0;border-right:1px solid var(--line);padding:6px 11px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--pri-soft);color:var(--pri);font-weight:700}
+select,input[type=date],input[type=search],input[type=text],input[type=email],input[type=url],input[type=tel],textarea{font:400 14px var(--font);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;max-width:100%}
+input[type=search]{flex:1 1 220px;min-width:180px}
+textarea{width:100%;resize:vertical}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--bg);box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:var(--font);color:var(--fg);display:flex;flex-direction:column;gap:2px}
+.kpi:hover{border-color:var(--pri)}
+.kpi .l{font-size:13.5px;color:var(--muted)}
+.kpi .v{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .v small{font-size:16px;color:var(--muted);font-weight:400}
+.kpi .h{font-size:12.5px;color:var(--muted)}
+.kpi.urgent{border-color:var(--bad);background:var(--bad-soft)} .kpi.urgent .v{color:var(--bad)}
+.kpi.good .v{color:var(--good)} .kpi.pending .v{color:var(--warn)}
+.prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;background:var(--good)}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.flow button{background:var(--bg);border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0;padding:12px 14px;text-align:left;font-family:var(--font);color:var(--fg);cursor:pointer}
+.flow button:hover{background:var(--subtle)}
+.flow .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+.flow .l{font-size:13px;color:var(--muted)}
+h2{font-size:17px;margin:0;font-weight:700}
+.panel{border:1px solid var(--line);border-radius:10px;background:var(--bg);box-shadow:var(--shadow);min-width:0}
+.panel.pad{padding:16px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12.5px;font-weight:700;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--subtle)}
+th button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody.click tr{cursor:pointer} tbody.click tr:hover td{background:var(--subtle)}
+tr.sel td{background:var(--pri-soft)}
+.num{font-variant-numeric:tabular-nums}
+.sub2{color:var(--muted);font-size:12.5px}
+.pill{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.s-hir{background:var(--bad);color:var(--on-pri)} .s-good{background:var(--good-soft);color:var(--good)} .s-info{background:var(--pri-soft);color:var(--pri)}
+.s-warn{background:var(--warn-soft);color:var(--warn)} .s-mute{background:var(--subtle);color:var(--muted);border:1px solid var(--line)} .s-bad{background:var(--bad-soft);color:var(--bad)}
+.bulk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--pri-soft);border:1px solid var(--pri);border-radius:8px;padding:8px 12px}
+.pager{display:flex;gap:10px;align-items:center;justify-content:flex-end;color:var(--muted);font-size:13.5px;padding:10px 12px;border-top:1px solid var(--line)}
+.list{display:flex;flex-direction:column;gap:12px}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);background:var(--bg);min-width:0}
+.card.hir{border-left:4px solid var(--bad)}
+.card .hd{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.card .hd b{font-size:16px}
+.quote{background:var(--subtle);border-radius:6px;padding:10px 12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.muted{color:var(--muted)} .small{font-size:13px}
+.empty{color:var(--muted);padding:34px 20px;text-align:center;border:1px dashed var(--line);border-radius:10px;background:var(--subtle)}
+.empty b{display:block;color:var(--fg);font-size:16px;margin-bottom:4px}
+.funnel{display:grid;grid-template-columns:140px 1fr 60px;gap:8px 12px;align-items:center}
+.funnel .b{height:18px;background:var(--pri);border-radius:3px;min-width:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.shade{position:fixed;inset:0;background:var(--shade);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(600px,100%);background:var(--subtle);border-left:1px solid var(--line);z-index:21;overflow-y:auto;padding:calc(18px + env(safe-area-inset-top,0px)) 20px 48px;display:flex;flex-direction:column;gap:14px}
+.drawer h2{font-size:22px}
+.sec{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
+.sec h3{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 8px}
+.sec ul{margin:0;padding-left:18px}
+.sec.alert{border-color:var(--bad)}
+.kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 10px;font-size:14px}
+.kv span:nth-child(odd){color:var(--muted)} .kv span{overflow-wrap:anywhere}
+.tl .e{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.tl .e:last-child{border-bottom:0}
+.tl .t{font-size:12.5px;color:var(--muted)}
+.tl .e.future{opacity:.6}
+.msg{white-space:pre-wrap;font-size:14px;background:var(--subtle);border-radius:6px;padding:10px 12px;margin-top:6px}
+details summary{cursor:pointer;color:var(--pri);font-size:13.5px;font-weight:700}
+.modal{position:fixed;inset:0;z-index:25;display:flex;align-items:flex-start;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) 16px 24px;overflow-y:auto}
+.modal .box{background:var(--bg);border-radius:12px;width:min(880px,100%);padding:22px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:26;box-shadow:0 12px 40px rgba(16,24,40,.25)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.form label,.map label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:700}
+.form label.wide{grid-column:1/-1}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;background:var(--subtle);display:flex;flex-direction:column;gap:10px;align-items:center}
+.steps{display:flex;gap:6px;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.steps b{color:var(--pri)}
+.err{color:var(--bad);font-weight:700;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:8px;font-weight:700;z-index:40;max-width:90%}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--pri)}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside.side{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px 12px;align-items:center}
+  .brand{padding:0 8px 0 0} .brand span,.sample{display:none}
+  main{padding-inline:16px}
+  .funnel{grid-template-columns:104px 1fr 48px}
+}
+
+/* v4: flatter, denser, fewer containers; blue only on actions */
+:root{--shadow:none;--bar:#475467}
+body{font-size:14px}
+.btn{border-radius:5px;box-shadow:none}
+.panel,.sec{border-radius:6px;box-shadow:none}
+.card{border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:12px 0}
+.list{gap:8px}
+.side button[aria-current="page"]{background:var(--line);box-shadow:none}
+.brand{font-size:13.5px;letter-spacing:.09em}
+.brand i{width:14px;height:14px;border-radius:3px}
+.grp{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:14px 10px 4px}
+.cnt,.cnt.hot{background:none;padding:0;font-weight:400;font-size:13px;font-variant-numeric:tabular-nums}
+.cnt.hot{color:var(--bad);font-weight:700}
+.sample{border:0;font-size:12px}
+.seg{border:0;gap:2px;border-radius:0}
+.seg button{border:0;border-radius:5px;padding:5px 10px}
+.seg button[aria-pressed="true"]{background:var(--line);color:var(--fg)}
+.pill,.pill.s-hir,.pill.s-good,.pill.s-info,.pill.s-warn,.pill.s-mute,.pill.s-bad{padding:0;background:none;border:0;border-radius:0;font-weight:600;margin-right:6px}
+.pill.s-hir{color:var(--bad)} .pill.s-info{color:var(--fg)} .pill.s-mute{font-weight:400}
+.bulk{background:var(--subtle);border-color:var(--line);border-radius:6px}
+tr.sel td{background:var(--subtle)}
+.funnel .b{background:var(--bar)}
+th{background:none;font-weight:600} td,th{padding:8px 10px}
+.kpi,.kpi:hover{border:0;box-shadow:none;padding:0;background:none;border-radius:0} .kpi .v{font-size:22px}
+.hero{gap:20px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.drawer h2,.modal h2{text-transform:none;letter-spacing:0;color:var(--fg)}
+.head h1{font-size:21px}
+.today{display:grid;grid-template-columns:1.5fr 1fr;gap:8px 48px;padding:4px 0 20px;border-bottom:1px solid var(--line);max-width:760px}
+.today .col{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.stat{background:none;border:0;padding:0;text-align:left;font-family:var(--font);color:var(--fg);cursor:pointer;display:flex;flex-direction:column}
+.stat:hover .cap{text-decoration:underline}
+.stat .big{font-size:46px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .big small{font-size:22px;color:var(--muted);font-weight:500;letter-spacing:0}
+.stat .mid{font-size:22px;font-weight:700;line-height:1.1}
+.stat .cap{font-size:14px;color:var(--muted)} .stat .cap b{color:var(--fg)}
+.stat.hot .big{color:var(--bad)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;max-width:760px}
+.rows{display:flex;flex-direction:column;max-width:760px}
+.nrow{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.nrow:hover .co{text-decoration:underline}
+.nrow .co{font-size:15px}
+.meta{color:var(--muted);font-size:13px}
+.nrow .q{margin-top:3px}
+.side2{display:flex;flex-direction:column;align-items:flex-end;gap:6px;white-space:nowrap}
+.link.quiet{color:var(--muted);font-weight:400;font-size:13px}
+.pipe{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;color:var(--muted)}
+.pipe button{background:none;border:0;padding:0;font:400 14px var(--font);color:var(--muted);cursor:pointer}
+.pipe button b{color:var(--fg);font-variant-numeric:tabular-nums}
+.pipe button:hover{text-decoration:underline}
+.mini{max-width:380px}
+.mini td:not(:first-child),.mini th:not(:first-child){text-align:right}
+@media (max-width:820px){.grp{display:none}.today{grid-template-columns:1fr 1fr;gap:8px 20px}.stat .big{font-size:36px}}
+
+/* v5: metrics strip + two-column overview */
+main{gap:14px}
+.head{gap:16px}
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.strip button{background:var(--bg);border:0;border-right:1px solid var(--line);padding:10px 14px;text-align:left;font-family:var(--font);color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:1px;min-width:0}
+.strip button:last-child{border-right:0}
+.strip button:hover{background:var(--subtle)}
+.strip .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.strip .v small{font-size:14px;color:var(--muted);font-weight:500}
+.strip .l{font-size:12.5px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:14px;align-items:start}
+.rcol{display:flex;flex-direction:column;gap:14px;min-width:0}
+.box{border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.box .sh,.box .rows{max-width:none}
+.box .sh{margin-bottom:6px}
+.queue .nrow:last-child{border-bottom:0;padding-bottom:4px}
+.queue .nrow{padding:11px 0}
+h2 .urgent{color:var(--bad)}
+.kvl div{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+.kvl div:last-child{border-bottom:0}
+.kvl b{color:var(--fg)}
+.pipe{gap:6px 8px;line-height:1.5}
+.pipe button.urgent,.pipe button.urgent b{color:var(--bad)}
+.src td:not(:first-child),.src ~ * td{text-align:left}
+.panel{border-radius:8px}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}.strip button{border-bottom:1px solid var(--line)}}
+
+/* v6: colour carries meaning; distinct component per section */
+:root{--bar2:#a9b4c2;--pri-tint:#f3f6fe}
+.brand img{border-radius:6px;display:block}
+.brand{gap:9px}
+.mets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.met{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px 11px;text-align:left;font-family:var(--font);color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:1px;min-width:0}
+.met:hover{border-color:var(--bar2)}
+.met .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.met .v small{font-size:14px;color:var(--muted);font-weight:500}
+.met .l{font-size:12.5px;color:var(--muted)}
+.met .prog{margin-top:7px;height:4px}
+.met.good .v{color:var(--good)} .met.warn .v{color:var(--warn)} .met.pri .v{color:var(--pri)}
+.met.warn{background:var(--warn-soft);border-color:transparent}
+.cols{grid-template-columns:minmax(0,1.85fr) minmax(280px,1fr);gap:16px}
+.queue{border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 3px rgba(16,24,40,.07);min-width:0;overflow:hidden}
+.queue .sh{max-width:none;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--subtle);margin:0}
+.queue .sh h2{color:var(--fg)}
+.queue .rows{max-width:none}
+.queue .nrow{padding:14px 16px;border-left:3px solid transparent}
+.queue .nrow:hover{background:var(--pri-tint)}
+.queue .nrow:last-child{border-bottom:0;padding-bottom:14px}
+.queue .nrow:first-child.k-objection{border-left-color:var(--bad)} .queue .nrow:first-child.k-interested{border-left-color:var(--good)}
+.queue .nrow:first-child.k-question{border-left-color:var(--pri)} .queue .nrow:first-child.k-pricing{border-left-color:var(--warn)}
+.nrow .co{font-size:15.5px}
+.nrow .q{font-size:14.5px;margin-top:4px}
+.tg{font-weight:700}
+.k-objection .tg{color:var(--bad)} .k-interested .tg{color:var(--good)} .k-question .tg{color:var(--pri)} .k-pricing .tg{color:var(--warn)}
+.nrow .side2 .link:first-child{border:1px solid var(--line);border-radius:6px;padding:5px 10px;background:var(--bg)}
+.nrow .side2 .link:first-child:hover{border-color:var(--pri)}
+.today2{background:var(--subtle);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.tgt{display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.tgt b{color:var(--fg);font-size:18px;margin-right:4px}
+.tgt .ok{float:right;color:var(--good);font-weight:700;font-size:12.5px;margin-top:5px}
+.tgt .prog{height:6px;background:var(--line)}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.tgrid div{display:flex;align-items:baseline;gap:6px;color:var(--muted);font-size:13.5px;min-width:0}
+.tgrid b{color:var(--fg);font-size:15px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bar2);display:inline-block;flex:none;transform:translateY(-1px)}
+.dot.warn{background:var(--warn)} .dot.pri{background:var(--pri)} .dot.good{background:var(--good)}
+.fun{display:flex;flex-direction:column;gap:2px}
+.fun button{display:grid;grid-template-columns:112px minmax(0,1fr) 46px;gap:10px;align-items:center;background:none;border:0;border-radius:6px;padding:5px 6px;margin:0 -6px;font:400 13.5px var(--font);color:var(--muted);cursor:pointer;text-align:left}
+.fun button:hover{background:var(--subtle)}
+.fun b{color:var(--fg);text-align:right}
+.fb{height:10px;background:var(--subtle);border-radius:3px;overflow:hidden}
+.fb i{display:block;height:100%;background:var(--bar2);border-radius:3px}
+.fun .urgent{background:var(--bad-soft);color:var(--bad);font-weight:700} .fun .urgent b{color:var(--bad)} .fun .urgent .fb i{background:var(--bad)} .fun .urgent .fb{background:var(--bg)}
+.fun .won{color:var(--good);font-weight:700} .fun .won b{color:var(--good)} .fun .won .fb i{background:var(--good)}
+.srcs h2{margin-bottom:4px}
+.srcs td,.srcs th{padding:7px 10px}
+.srcs td{color:var(--muted)} .srcs td:first-child{color:var(--fg)}
+.srcs td:not(:first-child),.srcs th:not(:first-child){text-align:right}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.mets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* v7: typography only. Humanist sans, calmer weights (400 / 500 / 600), natural tracking */
+:root{--font:"Source Sans 3","Source Sans Pro","Segoe UI",Arial,sans-serif}
+body{font-size:15px}
+b,strong{font-weight:600}
+.head h1{font-weight:600;font-size:23px;letter-spacing:0}
+.head .sub{font-weight:400;font-size:14.5px}
+.side button{font-weight:500;font-size:15px} .side button[aria-current="page"]{font-weight:600}
+.brand{font-weight:600;letter-spacing:.03em;font-size:15px}
+.grp,h2{text-transform:none;letter-spacing:0;font-weight:600;font-size:13.5px}
+.drawer h2{font-size:22px;font-weight:600} .modal h2{font-weight:600}
+.queue .sh h2{font-size:15px}
+.btn{font-weight:500;font-size:14.5px} .btn.pri{font-weight:600} .btn.sm{font-size:13.5px}
+.link{font-weight:600;font-size:14.5px} .link.quiet{font-weight:400;font-size:13.5px}
+.seg button{font-size:14.5px;font-weight:400} .seg button[aria-pressed="true"]{font-weight:600}
+.met .v{font-weight:600;font-size:23px} .met .v small{font-weight:400} .met .l{font-size:13.5px;font-weight:400}
+.cnt,.cnt.hot{font-size:14px} .cnt.hot{font-weight:600}
+.nrow .co{font-weight:600;font-size:16px} .tg{font-weight:500} .meta{font-size:13.5px} .nrow .q{font-size:15px;font-weight:400}
+.tgt b{font-weight:600} .tgt .ok{font-weight:600;font-size:13.5px}
+.tgrid div{font-size:14px} .tgrid b{font-weight:600}
+.fun button{font-size:14px} .fun .urgent,.fun .won{font-weight:600}
+.pill,.pill.s-hir,.pill.s-good,.pill.s-info,.pill.s-warn,.pill.s-bad{font-weight:500;font-size:13.5px} .pill.s-mute{font-weight:400}
+table{font-size:14.5px} th{font-size:13px;font-weight:500}
+.kpi .v{font-weight:600} .kpi .l{font-size:13.5px}
+.sec h3{font-weight:600;font-size:13.5px} .form label,.map label{font-weight:500;font-size:14px}
+details summary{font-weight:500} .err{font-weight:600} .toast{font-weight:500} .empty b{font-weight:600}
+.sub2,.small{font-size:13.5px} .msg{font-size:14.5px}
+select,input[type=date],input[type=search],input[type=text],input[type=email],input[type=url],input[type=tel],textarea{font-size:14.5px}
+.sample{font-size:12.5px;display:flex;flex-direction:column;gap:6px}
+.dsw{display:flex;flex-direction:column;gap:2px}
+.dsw button{padding:5px 8px;font-size:13.5px;font-weight:400;border-radius:5px}
+.dsw button[aria-pressed="true"]{background:var(--line);color:var(--fg);font-weight:600}
+.sample{margin-top:22px;border-top:1px solid var(--line);border-radius:0;padding-top:14px}
+/* v8: app-wide. Grey page, white surfaces; each page its own component type */
+body{background:var(--subtle)}
+aside.side{background:var(--bg)}
+.side button[aria-current="page"]{background:var(--pri-soft);color:var(--fg)}
+.box,.today2,.queue{background:var(--bg);border:1px solid var(--line)}
+.srcs .scroll{background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.empty{background:var(--bg)}
+.bulk{background:var(--bg);border-color:var(--pri)}
+.pill.s-info{color:var(--pri)}
+.sample{margin-top:0;border-top:0;padding-top:0}
+.surface{background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.surface>div:last-child{border-bottom:0}
+.surface>div:first-child{border-top-left-radius:9px;border-top-right-radius:9px} .surface>div:last-child{border-bottom-left-radius:9px;border-bottom-right-radius:9px}
+.co{font-weight:600;font-size:16px}
+.wrow{display:grid;grid-template-columns:minmax(210px,1fr) minmax(0,2.2fr) auto;gap:8px 24px;padding:20px 18px;border-bottom:1px solid var(--line);border-left:3px solid transparent;cursor:pointer;align-items:start}
+.wrow:hover,.trow:hover{background:var(--pri-tint)}
+.wrow.k-objection{border-left-color:var(--bad)} .wrow.k-interested{border-left-color:var(--good)} .wrow.k-question{border-left-color:var(--pri)} .wrow.k-pricing{border-left-color:var(--warn)}
+.wrow .q{font-size:15.5px}
+.nx{margin-top:8px;font-size:14px;color:var(--muted)} .nx span{font-weight:600;color:var(--fg);margin-right:8px}
+.acts{display:flex;gap:8px;align-items:center;white-space:nowrap}
+.menu{position:relative}
+.menu summary{list-style:none;color:var(--fg);font-weight:500;display:inline-block} .menu summary::-webkit-details-marker{display:none}
+.pop{position:absolute;right:0;top:calc(100% + 4px);background:var(--bg);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px rgba(16,24,40,.14);padding:4px;z-index:10;min-width:200px;display:flex;flex-direction:column}
+.pop button{text-align:left;background:none;border:0;padding:7px 10px;border-radius:5px;font:400 14.5px var(--font);color:var(--fg);cursor:pointer}
+.pop button:hover{background:var(--subtle)}
+.trow{display:grid;grid-template-columns:78px minmax(190px,1fr) minmax(0,1.6fr) auto;gap:6px 18px;padding:10px 16px;border-bottom:1px solid var(--line);align-items:center;cursor:pointer}
+.trow .co{font-size:15px}
+.ty{font-size:12.5px;font-weight:600;padding:2px 8px;border-radius:5px;justify-self:start}
+.ty.call{background:var(--warn-soft);color:var(--warn)} .ty.linkedin{background:var(--pri-soft);color:var(--pri)}
+.gh{margin:4px 0 6px;color:var(--fg)} .gh span{font-weight:400;color:var(--muted)} .gh.urgent{color:var(--bad)}
+.sum{display:flex;gap:26px;flex-wrap:wrap;color:var(--muted)} .sum b{color:var(--fg);font-size:18px;margin-right:6px} .sum .warn b{color:var(--warn)}
+tr.pz td{background:var(--warn-soft)}
+.tools{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--subtle);padding:8px 0;margin:-8px 0}
+.lead-co{font-weight:600} tr:hover .lead-co{color:var(--pri);text-decoration:underline}
+.sc{color:var(--muted)} .sc b{font-weight:500;color:var(--fg)}
+td.w{min-width:220px}
+@media (max-width:820px){.wrow,.trow{grid-template-columns:minmax(0,1fr)}.ty{justify-self:start}}
+td.w{min-width:200px;max-width:250px}
+
+/* v9: Libre Franklin, white page, card overview, campaigns */
+:root{--font:"Libre Franklin","Segoe UI",Arial,sans-serif;--subtle:#F7F8FA;--line:#E5E7EB;--fg:#111827;--muted:#6B7280;--violet:#6D4BD8;--violet-soft:#F1EDFD;--yellow:#E7A93B}
+body{background:var(--bg);font-size:14.5px}
+.tools{background:var(--bg)}
+.side button{font-size:14.5px} .head h1{font-size:24px}
+#scope{margin:0 0 10px;width:100%;font-size:13.5px;padding:7px 8px;font-weight:500}
+.ogrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-items:start}
+.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}.c3{grid-column:span 3}
+.pcard{border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:16px 18px;box-shadow:0 1px 2px rgba(17,24,39,.04);display:flex;flex-direction:column;gap:12px;min-width:0}
+.ogrid>.pcard,.ogrid>.queue{align-self:stretch}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.bn{font-size:30px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.mn{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2} .mn.amber{color:var(--warn)}
+.delta{font-size:12.5px;font-weight:600;color:var(--good);background:var(--good-soft);border-radius:99px;padding:2px 8px} .delta.down{color:var(--warn);background:var(--warn-soft)}
+.cap{color:var(--muted);font-size:13px;font-weight:400}
+.split{display:flex;gap:10px 28px;flex-wrap:wrap}
+.plain{background:none;border:0;padding:0;text-align:left;font-family:var(--font);color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.plain:hover .cap{text-decoration:underline}
+.key{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px} .key i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.pcard svg{display:block;width:100%;height:auto} .pcard svg text{font-family:var(--font);fill:var(--muted);font-size:11px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;font-size:13px}
+.cal span{padding:5px 0;border-radius:7px;font-variant-numeric:tabular-nums} .cal .dow{color:var(--muted);font-size:12px}
+.cal .on{background:var(--violet-soft);color:var(--violet);font-weight:600} .cal .tdy{outline:1.5px solid var(--pri);outline-offset:-1.5px} .cal .out{color:#C5C9D1}
+.round{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:15px;line-height:1;cursor:pointer;color:var(--fg)}
+.mnav{display:flex;align-items:center;gap:6px;font-weight:600} .mnav button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:17px;padding:2px 6px;border-radius:5px}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:110px;background:var(--subtle);border-radius:8px;padding:10px 10px 0}
+.bars div{display:flex;gap:3px;align-items:end;height:100%;justify-content:center} .bars i{width:9px;border-radius:3px 3px 0 0;display:block;min-height:0}
+.blab{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:2px 10px 0;text-align:center;font-size:12px;color:var(--muted)}
+.olist{display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:none;font-family:var(--font);font-size:14.5px;color:var(--fg);text-align:left;cursor:pointer}
+.item:last-child{border-bottom:0} .item:hover b{text-decoration:underline}
+.item>span{display:flex;flex-direction:column;gap:2px;min-width:0} .item .m{align-items:flex-end;font-variant-numeric:tabular-nums}
+.thumb{width:36px;height:36px;border-radius:9px;display:grid!important;place-items:center;font-weight:600;font-size:12.5px}
+.tagrow{display:block}
+.tag{font-size:12px;font-weight:500;border-radius:5px;padding:1px 7px}
+.t-blue{background:var(--pri-soft);color:var(--pri)}.t-violet{background:var(--violet-soft);color:var(--violet)}.t-amber{background:var(--warn-soft);color:var(--warn)}.t-green{background:var(--good-soft);color:var(--good)}
+.bub{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;min-height:170px;padding:6px 0}
+.bub div{border-radius:50%;display:grid;place-items:center;font-weight:600;font-variant-numeric:tabular-nums;margin:-5px}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px} .legend div{font-size:13.5px;color:var(--muted)} .legend b{color:var(--fg);margin-right:5px}
+.geo{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(150px,1fr);gap:18px;align-items:start}
+.tiles{display:grid;grid-template-columns:repeat(11,1fr);gap:3px;background:var(--subtle);border-radius:10px;padding:10px}
+.tiles span{width:100%;min-width:0;aspect-ratio:1/1;border-radius:4px;background:#ECEEF2;font-size:9px;display:grid;place-items:center;color:#9AA1AD}
+.rank div{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)} .rank div:last-child{border-bottom:0}
+.rank .st{font-size:11.5px;font-weight:600;border-radius:5px;padding:2px 0;text-align:center;color:#fff}
+.queue{border-radius:12px} .queue .sh{background:var(--bg)}
+.lab{font-size:14px;font-weight:500;margin-bottom:6px} .chk{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer}
+@media (max-width:1150px){.c7,.c6,.c5{grid-column:span 12}.c3,.c4{grid-column:span 6}}
+@media (max-width:820px){.c3,.c4{grid-column:span 12}.geo{grid-template-columns:minmax(0,1fr)}#scope{width:auto;margin:0 8px 0 0}}
+</style>
+
+<div class="app">
+  <aside class="side" id="side"></aside>
+  <main id="main"></main>
+</div>
+<div id="overlay"></div>
+<div id="modal"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ================= sample data (swap for the real database when connecting) ================= */
+const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAfsklEQVR42u2cd5hdVbn/P+/ae58+vWbSew8phECABKSFIuWiF0SRC0oRRS9cBfTyw6v3qpCriIiiNDHADynSpIYIN3RCQhJSSCY9UzLJ9Jkz55x99t5r/f44ZyYzKRiKv+fx6nqe9cw8c/ZZ71rvfsv3LWvgH+Mf45MM+V92FpX/3QD6H683N6x+jNmXYdbfuwSpfpIyCBiSP1M90HiAZ/4uzcPpIvIS0JVXLQN0icifgTP7PSt/T4zpVZ3b+jHFhCIRHYpEdP+/Ab/u952PzCT7b1StAuDnwFWAX1EzWCoHD1ahcEQQIZvJmObGBr2nod4AXwN84Jt5JgX/m21Q7wHnichSY4w3fNwEu3rYMAl8H61zpkYphWXb7K6rM9s3fuCLiGOMOQF4+aMySf1N6pjINcYYU1pVLVVDh0nWddHB3jPrICDrulQNGSpl1YPEGGNE5JqPK65/S7YnAAqMMUcBUlkz2NI66OVafw7mHtYBFTU1FiDGmCOBovwa8v+DQb2Gz87PXjyiDvB3+ZQYBFAJlFq2TSgS7pMcYwzkpzEmhxSDgFA4gm07AMVA1Uc1LfbH2GQvU4OPaPB6PU+vl/lEzDLGIMrCCYVytifPlL7Ti6CUQusgx7yP+ZLsj2Ege5lSFLHt6VrpGSDjjdaDDBTkd9IlSu0CUyuBrHKDYCXQeYC1Pg4o3AJs0UEwrrVpl7EsS1LJJL6XJfBzSyorx7hYIkEQBCYIfAG2A7V/DfCo+kmNWBanhWx5UEQa98EbB50i0hiy5UHL4rR+b1IdoooPoA8sEJFN+QMGh0A/ALSIbAZOOsi6H9vN971py+JzINcGgZnd++HQmriePrlUTxpTzODquBQmHAC6kh71TT3mg80drFrXpuoae/o2YlnyLpibg4A/HoI09f/scyJyrTF76YejURKFRUQTCUKRCLZt5zji+2QzGVLJbnq6unDT6f4e8B1jzM3AE4cizfIX1M8HRiklv9DanAFQUhTS5505ynz+9JHq8KnlUlgWAVvl35fZ61EE8DVdrRmWr2kxjzyzTT/yp63S3plVOawif9LafAvY1o/WAemLyG3GmNMBbMfR5YNqpHzQIEkUFeOEQogc+BjGGLysS7Kjk5ZdjaZl1y7j+57KM+ppY8y/fgj9D2VQr46ebVlydxCYsrCjgqsumSzf/MpkNXRkEfiaIO3jeTpnBKX/cgYMiAiOo7CiNtiKnVs7ue2edfqXv1tnsp62LEtagsB8BXh6n032/n62iNxtjCkTpYKaESOlZsRIFY3HMdqgddAHDvs8We7wew+iFMqyEBHSySSN27fpxu3bjTHaEpEWY8xXgacOxqQDpQPU978Py95WVyKyKAhMbM70Cv/xe06yL7pwohSFLNJdWQJPgwGl5EOn1uC5AV7Ko7wkzMmnjpDT5g1WK9e0+vVNqYRtyRe0YQ+wLL9Jld/o10VkkTEmligu9ifNmm0PGj5ClFL0R80i0jcdJ4Rl2Rij+/7WCxx1EGCHQpRVD5KSinKV7Ozys5lMQkTOB1qAd/K0zYdJkOr30HZgyCXnjQt+/ZOjrXAkxxhl5Tf0May9MYYgMEQLQ2QyPpd/+3W96PHN2JYoPzBfzweW5JlzuzEmqBwyRMZMPUxZSuH7/kHVybJtdm6qBWMYNm48ge8fdA+2bRNozeY1q/We+nojIpaIfFNrfXueJ/qAEqQEY0Abc3XJqNLQxafOG1Lyw+sORwIj2XSAZeVsjaUUWu8vzocQIqCU4GUCLKU499wx0t6c5q2Vzdq25QyteT1vc/5gjAlqRoxU46bNUL2qtB+tPPZxwmF2bNzAztqNdLa2gjGUVVUTBH4fJuq/B601AlTWDBbPy9Ld3o4xZh7wGyDdX3Ck308zaFCivKMjfVTLygu+ERtaeDLdWZ3tzirISYztKCSkSHdliRaGwNOk0z62/dEBudYGRAgXhbjoipfNosc3i2VJp9YYY0xx5eAhZsLMWeJ73kElQSmFZdls27Ceus2bBnw+ZPQYRk6clFOvAzG3z6taum7zJuW52doxw4dOXrp0qd8fJ1n9JSmT8p7OevrfD5tQNnr8qCKTandV7+HFFtq7snz1317jxltWsuy9Zo4+oori6hheyseYXntw6NJkjEF7mjMXjJAXXqmjoSkVASKFpaVMnHW45MIIs58lMMZgOw5BELD5/VU07tgOwH9efgEnHXEYf17+Pl3tbWR6kpSUV2CHQugg2E+a8mtJcUVFUF5TU+Eri7rNm9aKSE8v0d6YKVCKLxnk3yJhO3vtFVNlUGVUERhEhEBrwkURvn3jW/zu0U20dbi8v6GNp17cycjBCSZNLsOOWOAbvMCgzV4B/TCGiQg6MISjNnNnVHDfo5tNEGiGjRkrhWXlBJ6HiBqgTsqysB2HjpYWale9R1tzMwA/+9bFXHfpBRw7exol0Qgvvr2Snu5uOpv3EInHiRcW5pBIXr36byzwfSUi1G/dMr+jpeVSy7K2GmPW5eBf7hVFlJJHtTbF371ymvrClyYqt93FshTGgOMo2pvTXHnDW6QzPt/98tl0Jnv4YNseHnpyCytWtVAYcxhSEydeFsGJ2NhKEANBYAh0TqXMARinlJDN+AweU0JPpyuvLdst2UyK8kGDEaX6GGPlGeOmU+zcuIGt69fiZjIMrijjDz/6Dl8+91Tcjm78jMsxR81kzsQxvPreWprb2mlpaMBzM0QTBUSi0byKD2SUZdu07dkddLW1xYDD8/bIt/JY4XNam0uryqP6gVuPs5y8WItAEGhCJRHue2Ajjz23jdFDKrn3e1/nnHlzCHTAhp2NrN3YykNPbeHhP21j/fp2ujpcFEI0ahMvcHASDk7cwQ5b2LbKKbjOebReWySeZsbkMu57bDMdHT0kCgtJFBeTB4ekkkkat25m69q1tLe2YAxccMo8HrnpemZNG0+mvQvbtlBKke1JM2HcKM4/8Rh2t3WwetN2ujs6aNnViOe6hKNRIrHYAEYZY4gXFao99fV+EPhlwFpgrQVgW9yiNaOu+pdJ5oyzRim3O4tl5VyaZSvSySwXXf0q7Z0u15x/BnOnjMcLAs44ehanz51JaWGCtq4km3a0sGJNC48/v5077v+A+x/fzJ8W1/H6W018sL6N3U0pMnmjXhBzcApCOHEHx1H4rk+iPEpTYw9vv7cHTED18BH0dHWxs3YDW9etpb2lhSAImDNlHL+9/kquv/QLFIYc3J4Utm0NAIdeJkNxIsY/nTKfORNHs6VhNzsad9PV3kZzQz1uOk04FiMaj+fhR0A4GsXLZExXe7uISBHwgAAjRVirlMTee+YsM3VquWRTXs4de5pYVYwbbnybH92+iuHV5bxy+w8IOza+1hhtiEZCxMJh2pM9rN2yg7fW1vLOuk2s3VpHY0v7AW1PSXGY0UMLmTCmiBlTypg1tZzJ44opH1VE7Yo9TPzMYyjbobJmMM2NDXh5TzZ/5hS+/vnTOOe4o7AjYdzuJKofIDyQp9PaEC6ME2SyPLn0HX712LO8snwNAI7jUD1sOINHjcYJh9E6oKery6x+43UxxqSAyeI46quep++aPqlML3/uLKX9HEbyPE2sIsrLL+3ktItews36/Pa6yzj/xGNo70rmMFEv+NMGx1JEI2FCto3n+7R1J6nb3cqWhl1sqm9ic30T2xr3ULe7leaOrv0OM6Q6zknzhnDJeWO56v+8yar1bX2fHX/4NK676FxOOXIGODZ+MkUQ6L49/KURBBpLCXZBHDyfl95Zxc2//yN/fnc1APGCAoaPn0B5dQ2BDlj52lKd6u5WSqmvSihkLcpmgwuvunhicNvCeVZPcxoRiFVEWb1iDwu++CJNLSnOPf5I7vnu1+hI9mApdRBso9EGlIBtW4Qch1DeLmitSbtZOpI97Gnrom5PM7U7d7F6yw5WbNhK3e7WvnWKC8N0dmepqSjl5m/8C188dT5YFl5PCq3NITPmQIwSEUKJGAQBD734Kjfc8QBbG5oQoHr4CMZOO4wt69YGDVu3WCKySGxbrfR9Pf2um47Wl1w8WUnaRwocnnt2O5dc8xq7W1JMHzeCp26+DttSfUT+clgBhnz6M2eHUaKwLYVjWzi2jaUUgda0dnazsnYbj77yJg8veatvjVPmTOeF+36Gu6c1D+o+nRR67gwQKiqgtbmN7/1qEXc+8SIApRUVxIuKdd3mTUpEVopSskdrU7H8mTPNrKNrZPWy3dyxaAN3PrgBg2HGuJEsuvEqyooSeF6AUp8svWwM+DrA6BwSFgHHsvLqafHcWyu5fOGdtHclGT98MKsW3dIHFO1Pi0Fa90X+YcdB4jEefe4VrrzpDlo6u7AtZfxAC9BsGcN/KRGrO+nLL+9ax7/fvJzl7+fA1/knzuWu67/G8OpyAq3xe7HDJ2MRRfEYiWgEz/dRImggk83Sncpw5OSxhEMOi99ZTTQc4opzTiFeUYptWWjPA/mEOzCGUCKOHYuAl8sKeOkMh02bwNnHzubtNRuo39MqSgQDTm/kKv1d5LGHjefSs07i9KNm4noedz61hJryEs48djYZN/uRAtR9vUokHOKJpcto7ezmX047jqBfPkcbQyTksHFnI/O+diPlxYVseewOHnrpNUoK4nzu5PkErvux6WtjsMNhnljyOrta27ni3FMhT9/3AyKJGMlUmgtv+BlPvbYMETE2EAjY/3ziXI6cPJbDxoxgyuhh2Erhej4bdjRy410PU1KY4ITDpxLKpwo+6iaNMVhK0d2T5ju3309XT4p50ycyflgNKTeLEunLFGS9XKoiEY2wpaGJK27+DUWJGKcdfTixcOiQ7eB+8ZtSZFJpLr/5Dlo7uznh8GlMHDOcbDqDbVtkkikShQkWXnURT776DsYY3xaRbmNMyRVnn2zmz5gkze1dZNwsfqApjEdxsx4hxyYacnCzPhHH2S+B2+u9er1boDVKctK4b+zlZj2i4RAZN0umH2OQnFFXStGdyuWQixIxtDGEHJtYJEzWzRKPhA9qU/rTF5H9vK2I4OXphx2blOsOUFmlBKM1Ta3tJve4JJUS2QWwflud6ejuoSfj9i1u8iKf9XzSbpawY6ON2e/NFMSjlBcVYCnBUkJ5UQEFsWifIez/bNixSWdcsr5PJBTKrdcvU2sr1Qcwq0qKKS8sIOv5pNIuIcfZb02MIRyPESkpwrIUllJESooIJ2JwAPqOY5PKuLieTywUGvCMNiC2TUNzq8kzbJetlPog0HpSbV2jcRy7T3SVEtKez+gRNfzg8vOpKi0mVhAlk3Zzbz1PMBoO8fj/LGP9tjqu+vypGGO48e6HmTp6GJ89elaf+ogIvtEkiuLc9M0Lae3sZuTwatKet3c9QJSwYUcDAMMHVzJ80mhuueYrDCovJV5aiN+T2ZtKzduUJ5e8znsbt3Ldl/8JEeHmW+/lsLEjOfuEo/Fdt49+YAzR4gR3fO9KdrW0M2bMMHzP6yfpORC3ZvOOHINErbcF3gTOfWfdFtys1+fGjYCd9knsTnHj7GMxQUBnbRt+TRxt783cGgM/uPdR6na38PTryzHAlvomRtZU8tmjZw1I7to+hGrbuGLkFMRSdG3qoKc6hh+xkHx+O+NmeXf9ZgAOHzoUVuzk6mlzAMgu344aWwGO3ffmlcC1v/w9m+p38cif30CADTsaGDmoknNOmDuwXu/5eCu288/VY2CIhffeThhVDokwaIMlCtwsr63+oHfLb9pG/JcAb9Xmbc7Wht0Mr67AzXoYRxHuypJo7MGVJIJQIIJbEiYoDCF6LwD8yRUXcP0dD7K5vilXL6sq50eXf6G/Z8dYgp3yKGjswTNJDIaEEfyYjReLgaeJhh021zexsnYbdsjmmJqhsK6BZNbFEsESwVQXIhUO5IsGGvjFty/lypt/w8Zeyauu4LZvX4YR2atCtoI2F2r3kM6nUOzAQEEEKYqifQ8nHGJ73S6Wf7DZAjwj/hLb81hrWWplxvVmP//OKn3N+WdYKdfF1kK6PIK2Bcl7Ym0LXsJBdM5uKBHSbpbT585k5viRrKzdBggzx4+kurSY7lS6T30kMGQLHNrGF6P83KaNArc4jNIG3xiikTDPv70K1/M5cup4JsybRraujXAOlkPYRopj4Otc7V0gyLicOm8OKyaOZdn6WoyBIyaPpayiDK8ntVd9fA0lMeTIkdiun+8yUEhVAfgabQwSjfDEq+8EaTerHMta6XnBWjtXGuZ+4IhFzy3lktOPx7asvreeqogOKIFIYPbzDJ09KYoL4pw+dyYAqUyWzp7UAWO2TFlkQJOB6NzhHUvR1pXkwcWvAfClk+ehCmLooTq3n70wfD/62WQPpYVxFhx3VJ6ISzbZs58XBZCaooFg0881N1iWhduV5DePv5BrjhBzf/4dIr6vH7SUat3S0KT+sOQNU1wQxw+CnM3yTd8U/8BNGbmSTEBHMkVHMoUfBAcNaGXf9Qx4QUBxQZyHXnqdLfVNVJUWc/7Jx6KTKSzfQNbPTe/AFWKlFJ4f4HYncbuTOYR+EPp4wd71sj4YCPwApzDBomf+bGp3NipLqVbf1w8C0tvL0y7wUxGRn/7fp4P6Pa0DXbD85T7RXmhgKfXhIG6f9bQ2xMIhtjc18/M/PIOIcN2F51A2qJKs6yFK8qVs+dAw49DpD1xPG4MTDtHS1MyNd/0hEBER+G+gHbB6GyKVr/UvlEjt7rZO+7pfP6jj0fD+mONTHrn2C0M0HObaXz3A7rZOjDE5W6Z1rlD3V6avtcGKRfjGzb/RTa3tthKp9bW+rbdZ1OpXUc0aY1Zblrp4w/aGwFJKFhw5Q7p60gdVl086/CCgqrSYH933R/O7Z18xlqVEibBq0zYdU0rmzz+SbDL116Pv+0QrSvnv3zxobn34GW1blgq0Piffg6QAbfVjpgVsF2PSSqlTlq5cr8uKCtRxMyeTTGXyEvnpNMVqY9DGUFVazO2PPc/3737EWJZSQaCvEmNeVEqdtnjZaj20uFCOOHIG2Z7UgFr7J5YcYwi0JlpRyj0PPsVVt9ytLUvZJtDXGXhoQNvPPhJnG3gNKFBK5r74zmoTdmz5zKyp+EHw4cbvI0hNyLEpSsRY+MBT3HDnHwKlBGPMfwELTa6JIKSUOuapV5fpopCjjp07C/E/PfqObeMUFvDzex7mGz+9UyullDHmFgPf760THqy7Q/KMGi7IZ40x5pX31qkdTc0cM20CFSWFZNwsgTYfSaJ689Yi9FVAvnXr77jjicXaspQlIlscR15yLFlgWzLfsqUZwySlpPT5t94zdfVNMn/2NApKiwjcbF8w+tHo574TLiqgozvJVT/5FTf9/o8AWnI9j/cB7/XjwX7dHb316OnASsAcc9hE3lqzUQKtGT24iu988SzOPnY2sWiYnrRL1vPIl7XyC+2NOnv7qZTksna572R4fOkyblr0BHV7Wvty1R/afycKbTTjhg3iPy77IuedeAwqGoF0mmzWywE8chvoF/PmW5QMSoRQyIFolCCd5uGXXucHdz1E7c5GLKU4fMJo8876Tb2bnwGs6l+bl307umzLutsPgq+cdtRM/9k7b7KfXfwqV996D5vqdgEwfdxILlwwjxNnT2VoRRmOY6O1Jgh0X6SvRLAslcMnns/O3a0sWf4+Dyx+jVUbtw1gwNCaOEMGxakqjwaFCccIkEz57G5J23W7eqjf1UPQD5zOnTaeS848iQVHzmTwoMpcXKYNBMHADjdLgVLg+TQ2NfPsG8u568nFvJtjBqNqqvjhpedxzvwjOOs7N/lLVqy1bcu6xw+Cr/ZvppJ91cuy1HtBoKc/ufB6c+ZJ85QEAW0dXfz0gSf49WPP0ZlM5XI18RizJozi8ImjGT+shsriImKREAA9GZfm9i427mzk3Q82s2LjVrp6cjkeSwQnbHHTtbM48bghDKmMUVQUAkflxE2AIIeYe7o9djQmeXd1Cy/8TwMv/E89HV1urvJREOeIyeM4aup4powcRnVZMYloBAGSGZem1g7Wb6vjzTUbeHvtRjq6ewAojEe5+PTj+fq5CygtTGBbiieWLtMX/+jXYim1KtB6Zn81s/cx0hiDDUgkFDJaazLdSQojYX58w1VEHJsf3PMwoVCIzp4UL69Yy8sr1h6SHSgdVcOgwyew6dk3yfRkWLm+jW9dNR2vK4ub9jEpBoYgApGQxaRxJUyaWs5FX5rAts0dPPjEVh790zbe39DK4rdXsvjtlYdEPx4NkXZ9LjvrJBZ+/Us0NLfRmUxRUhAnEnZy4QXG7s+LfRlkAYGl1Cat9ZTn3lyhTzllvpKuJKmMS2E6Q1VZCdpA9ewJBIGm8Z11TBgxhFjIYVdrBxk3CwKRUIhBZcX0uFk27migasY4jr/5a4QSUSpnjOPVG+/m949tojDhcNvCY0i3ZQ7YYxRog5/20alcI9TIwQlu+M5Mvvut6Zx2wQu8/MYuJo0cTCwcprGlnXQ2Cwai4RCDykvIZLOs21rHGScMxbIUj7+wjeqyIlJulnQmi21bJGIRlry7VgOilGzKN4b1uXl7f4zi36dE/um3TyyW42ZO4ZwzTgCgeddufv3Ei7nurckjEaDuzTVUlxXz6A+vprGlPZfCBGLhMNVlxXzu/9zC+q11VEwagR0J0d3QwrD5h3HENeexbOGD/PK+9Rw7u4rPf34smXYXy5IDRAXS18zsZgOySY+C6jhzZ1ay+NV6qkuLeWrh9exqaSeVydOPhBhcUcrZ1y9k9aYdzDuiGhH44/PbuP+FpZw+dxbDqsoBuP+FV7n/haUiImJ8fd+HNXEaQBnDRmCir/XUh5e8EdRu3amWr6vl6p/dzYZtdYQLYhzxb+cRrShm8zNvsLW+iYznc9LsaZQVFVBSECfsOPzn7//II0vexLItZn3jXELxKAh4PRmqZ4wl3d5Nywc7WPruHi48cxSJghA6MH+xn0gpQRmoLo9w10O11NY1kXZdFhw5g/KiQkoKEoRDDv9xz6P8/rml2Jbi1v+YwxEzK7n34Vq2NbTxzJvvUrenlXuffZmFDzwdBFpbAg9r+PG+XfhykLZgJbDSwNT8wwqgcEglR13/RconjkAsxZpFL7D63mcBmDVxNPNmTAIDS1eu570NWwCYcelnmXLhArJdPYil8r4/93PxlT+lbVsTl10wgd/+Yj6Ztsx+UnTgyqghUhJm4c9Xct1P3gVgzuTRfGbWVABeeW8tb6/NZSV/fO0svnv1TIyvWbaymS//61Jqt/bdiug925q8i9f72qADdbkaYALwtogUjFkwBycalsLh1QyZP51IURwvlcsL27EI6x58iXUPvEg27Q5YKBSLMOXCU5j0hRPxU5kBkbgJNKHCGPWvv8/Sf78T27FY8cyZTJ5USjblH1L1VmtDuCDEz361mh/euoquZHbA5wVxhxu+NZ1rvzEdt8cDbQgXOHS0ZXjsme2sq+2gp8czdz9SizEmCcwBNuzb5SoHav0Xy7rHBMElNbMn+Cf/8mpbZ30MBj+TRWd9pF9nfaggRvvWRhrfXEvn9lwTQNHIQdTMnULxyEG43am9iLdXevJlGice5ZVv307D8o1c9sWJ/PbWeTmDbR0aQtbaEC4Os2VjO08v3snajR0YY5gyvoTPnjSUsRNLcTvzRQYB39NEwhYSc3InD1ucdvaf/OdfqbdtW+71ffOVfa8myAHCjHIR2WyMKTz+pisYPGeSZLtTWCEH7QdYYQft+X0SYQKNHQlhRUIDgJqfyRJksjm1yjNHOTZB1sMKOQRZj1AiRv0b7/PK9+6ktCTCB0vOobwsiu/pQ64wB4EhErUhag8EimmfTNrfq7IGnJAinfEJ2RZp1ydWHObPL9ebk7/0AkpJl9ZmTL6pvA8HqX0NtnLUqcaYosJhVbpq+ljxUi6hwjjrHlrCc5f/Nx3bdmGFQ3vb/i2Fn/VwO5K4nT252ZEkyHp9zDHaYEVCtG9p4LnLFrLuoSU48SjZZJqq6WMpHlZJW3uGl17fhYrZBPrQs0CWJbiuT7otQ7rdzc22NG5mL3O0NlhRizUb2jlswZP8+FerSZRE8Lo95h9VLRPHFGutTZHjqFP3dV5q/8BOFgBm8JGTTSgRxQS5y2q7Vmygu6GZtto6rLBDv1bWXOBoqYGzvwgYgxVyaN24k+6GFnYt35BrzgwCQoVxBs+ZhAgsfr3x493XEsG2+k81wI5pAypssXxNC5u2dbH4tQbQBl8bQkVhzjhhaO+1rQX7Gun+97B8wELrWYBUThulTKD7lNAO527V5OzPx8jzGYNycpdK7HCoTxVMoCmfMgpjYMX7LXjdWex8f+SnOjSEnBzjYtG98M/4mvlzqntz87P62SDZX4JiVBpthirbonBIpQTe3rsRJn8X9BPlQE2/dfKvRXs+BUMrQQk76rrY3ZxD1b33Tj/VaXLqpnW+51pAsgHjRhVJyFFobYbGYlTueyerz0A7nlPp4cXCRQkTLS3KtRHbOZXptZqiBqrTId/TsFQuAd9b5bQUKt+ZGi0rIlKYINnRTVuHy5ARBdiB/sTNWgPqBI7Cyq8nkjuX4+To11TGpLw0Yhp3p2J4ThV4u3p5IvvcujseeNlybK9wWJWF5BI7ohTdDXvwUi7xqlLCRXH6q9+hSI5YCrczSc/udpxYhILBFRit+/xF187dBJ7PuFFFJOIORn96OpZrZxZa2zJsr09SkHAYO7IIrU3vEWT9po7AzQYO8BnglX3dfa8oTP+0pfpvcE7vz5MD4aDZQKUVsgZ0ngXZoPd2zMf/rzwBBPl77lZo4CK964dCFn+1EUA2CLCs/Dn6CVk2GyhgD/DuvmnXf4y/YL8+LML/exzBP8TiH+PTG/8P30ZrGqtfeBIAAAAASUVORK5CYII=';
+const NOW=new Date(), DAY=864e5;
+const sod=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const T0=sod(NOW).getTime();
+let seed=11; const rnd=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296};
+const pick=a=>a[Math.floor(rnd()*a.length)], ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const METROS=[['Phoenix','AZ'],['Mesa','AZ'],['Tucson','AZ'],['Dallas','TX'],['Houston','TX'],['San Antonio','TX'],['Austin','TX'],['Tampa','FL'],['Orlando','FL'],['Jacksonville','FL'],['Atlanta','GA'],['Marietta','GA'],['Charlotte','NC'],['Raleigh','NC']];
+const TRADES=[['HVAC','Air & Heat'],['Plumbing','Plumbing'],['Electrical','Electric'],['Roofing','Roofing']];
+const WORDS=['Copperline','Bluegate','Northfork','Redbud','Stonebridge','Kestrel','Longleaf','Saguaro','Tidewater','Ironwood','Mesquite','Harborview','Summit','Juniper','Pinecrest','Lantern','Sandhill','Clearwater','Oakline','Brightside'];
+const FIRST=['Dana','Luis','Karen','Tom','Maria','James','Angela','Rob','Carlos','Beth','Derek','Sonia','Greg','Tina','Marcus','Paula'];
+const SIGS=[
+ {k:'Hiring dispatcher',pts:18,fact:'Job post: Dispatcher, posted this month'},
+ {k:'Hiring office manager',pts:18,fact:'Job post: Office manager, posted this month'},
+ {k:'Reviews: hard to reach',pts:12,fact:'3 recent reviews mention not getting a call back'},
+ {k:'No online booking',pts:7,fact:'Website has a phone number and contact form only'},
+ {k:'Outgrowing basic tool',pts:5,fact:'Basic booking link detected on website'},
+ {k:'Fast review growth',pts:4,fact:'20+ new reviews in the last 60 days'}];
+const DQ=['Franchise location','Uses ServiceTitan','Commercial-only contractor','Over 50 employees'];
+const SOURCES=['Discovered by BestMate','CSV Import','Manually Added','LinkedIn','Website','Referral','Other'];
+const OWNERS=['Tarush','Unassigned'];
+const REPLY={interested:[['Sure, I can do a quick call. Thursday morning works.','Yeah send me a time, mornings are better.','Ok. I have 15 min Friday.'],true],pricing:[['What does this run for a shop our size?','How much is it?'],true],question:[['Does this work with QuickBooks?','Is this an answering service or software?','What does the pilot involve exactly?'],true],objection:[['We already use Jobber. Why would we switch?','We have an office manager who handles this.'],false],notint:[['Not interested, please take me off your list.','No thanks.'],false]};
+const P=[]; let nextId=1;
+function plan(p,s0){ const at=(dd,h)=>s0+dd*DAY+h*36e5+ri(0,110)*6e4;
+  const pl=[{t:at(0,9),kind:'email',n:1},{t:at(2,9),kind:'email',n:2},{t:at(8,9),kind:'email',n:3},{t:at(13,9),kind:'email',n:4}];
+  if(p.tier==='High') pl.push({t:at(0,12),kind:'linkedin',label:'Connection request, no pitch'},{t:at(5,10),kind:'call',label:'Call the office, ask for '+(p.contact||'the owner').split(' ')[0]});
+  pl.sort((a,b)=>a.t-b.t); pl.forEach(s=>{s.done=s.kind==='email'?s.t<=NOW:(s.t<T0-DAY||(s.t<T0&&rnd()<.75))}); return pl; }
+for(let d=29;d>=0;d--){
+  const dayStart=T0-d*DAY, batch=[];
+  for(let i=0;i<40;i++){
+    const m=pick(METROS),tr=pick(TRADES),sig=pick(SIGS),fit=ri(28,50),extra=ri(0,20),company=pick(WORDS)+' '+tr[1],first=pick(FIRST);
+    const reviews=ri(90,480), techs=ri(3,7), seg=rnd()<.82?'P1':(rnd()<.6?'L1':'L2'), sr=rnd();
+    const p={id:nextId++,company,industry:tr[0],city:m[0],state:m[1],contact:first+' '+String.fromCharCode(65+ri(0,25))+'.',title:rnd()<.8?'Owner':'General manager',
+      email:first.toLowerCase()+'@'+norm(company)+'.example',phone:'(555) 01'+String(ri(10,99)),linkedin:'',website:norm(company)+'.example',
+      source:sr<.62?'Discovered by BestMate':sr<.74?'Referral':sr<.84?'LinkedIn':sr<.92?'Website':sr<.96?'Manually Added':sr<.985?'Other':'CSV Import',owner:'Unassigned',tags:[],custom:{},
+      camp:'c-'+m[1],seg,fit,sigPts:Math.min(50,sig.pts+extra),signal:sig.k,added:dayStart+ri(1,5)*36e5,
+      found:[reviews+' Google reviews, '+(4.3+rnd()*.6).toFixed(1)+' rating',techs+' technicians named in reviews',sig.fact,'Single location, owner-led'],
+      steps:[],log:[],reply:null,meeting:null,paused:false,slot:false,dq:rnd()<.08?pick(DQ):null};
+    p.score=p.dq?0:p.fit+p.sigPts; p.tier=p.dq?'Disqualified':p.score>=70?'High':p.score>=50?'Medium':'Low';
+    P.push(p); batch.push(p);
+  }
+  const cap=d===1?25:ri(17,25);
+  batch.filter(p=>!p.dq&&p.score>=50).sort((a,b)=>b.score-a.score).forEach((p,i)=>{ if(i>=cap) return; p.slot=true; p.owner='Tarush';
+    const pl=plan(p,dayStart+DAY);
+    if(rnd()<.17){ const sent=pl.filter(s=>s.kind==='email'&&s.t<=NOW);
+      if(sent.length){ const rt=pick(sent).t+ri(1,30)*36e5;
+        if(rt<=NOW){ const type=pick(['interested','interested','pricing','question','objection','notint','notint']);
+          p.reply={t:rt,type,text:pick(REPLY[type][0]),positive:REPLY[type][1],handled:false};
+          p.steps=pl.filter(s=>s.t<rt);
+          if(type!=='notint'&&NOW-rt>2*DAY){ p.reply.handled=true; if(REPLY[type][1]&&rnd()<.6) p.meeting=rt+DAY; }
+          return; } } }
+    p.steps=pl; });
+}
+const REAL=[{"company": "Reeis Air Conditioning, Plumbing & Electrical", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "480-581-5683", "website": "reeis.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["1,855 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website: reeis.com", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (1,855 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Mountainside Air Conditioning Repair", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "480-914-3425", "website": "mountainsideair.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["636 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website: mountainsideair.com", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (636 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "AZ Home Services Group AC Repair & Plumbing Services of Phoenix", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-844-7757", "website": "azhomeservices.group", "seg": "L1", "fit": 29, "sigPts": 0, "score": 0, "signal": "", "found": ["23 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website: azhomeservices.group", "Owner name and email not found yet"], "why": "Disqualified: Duplicate listing of AZ Home Services Group.", "dq": "Duplicate listing of AZ Home Services Group"}, {"company": "Same Day Air Repair", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-571-1728", "website": "samedayairrepair.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["1,934 Google reviews, 4.8 rating", "Listed hours: Mon 5:00 AM – 8:00 PM; closed Sunday", "Website: samedayairrepair.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (1,934 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "Goettl Air Conditioning and Plumbing - Phoenix AZ", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-517-0039", "website": "", "seg": "L2", "fit": 33, "sigPts": 0, "score": 0, "signal": "", "found": ["14,447 Google reviews, 4.7 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Disqualified: Likely over 50 employees (14,447 Google reviews).", "dq": "Likely over 50 employees (14,447 Google reviews)"}, {"company": "Parker & Sons", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-424-9619", "website": "", "seg": "L2", "fit": 33, "sigPts": 0, "score": 0, "signal": "", "found": ["34,224 Google reviews, 4.7 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Disqualified: Likely over 50 employees (34,224 Google reviews).", "dq": "Likely over 50 employees (34,224 Google reviews)"}, {"company": "Benefit Air Conditioning", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-840-9229", "website": "benefitair.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["758 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website: benefitair.com", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (758 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "American Home Water & Air", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-726-1448", "website": "americanhomewater.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 0, "signal": "", "found": ["3,434 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website: americanhomewater.com", "Owner name and email not found yet"], "why": "Disqualified: Likely over 50 employees (3,434 Google reviews).", "dq": "Likely over 50 employees (3,434 Google reviews)"}, {"company": "Island Breeze Air Conditioning & Heating LLC", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "623-692-6013", "website": "islandbreeze-ac.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["659 Google reviews, 5.0 rating", "Listed hours: Mon 7:00 AM – 7:00 PM", "Website: islandbreeze-ac.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (659 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "1st Choice Plumbing, Air & Insulation", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "623-292-3697", "website": "1stchoicemechanicalaz.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["1,357 Google reviews, 4.9 rating", "Listed hours: Mon Open 24 hours; closed Sunday", "Website: 1stchoicemechanicalaz.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (1,357 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "Just Air LLC", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-595-8544", "website": "justairllc.com", "seg": "P1", "fit": 39, "sigPts": 0, "score": 64, "signal": "", "found": ["381 Google reviews, 4.8 rating", "Listed as open 24 hours, 7 days", "Website: justairllc.com", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (381 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "AC by Sam LLC", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "480-427-5588", "website": "", "seg": "P1", "fit": 39, "sigPts": 0, "score": 64, "signal": "", "found": ["111 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (111 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "AZ Perfect Comfort Heating & Cooling", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-789-3000", "website": "", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["805 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (805 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Promise Heating & Air", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "602-363-0230", "website": "", "seg": "P1", "fit": 39, "sigPts": 10, "score": 80, "signal": "Closed after hours", "found": ["236 Google reviews, 5.0 rating", "Listed hours: Mon 7:00 AM – 7:00 PM; closed Sunday", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 80, from the 6 checks possible with Google data: trade, market, size (236 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "Four Seasons Home Services - Phoenix, AZ", "industry": "HVAC", "city": "Phoenix", "state": "AZ", "phone": "480-489-3210", "website": "", "seg": "P1", "fit": 39, "sigPts": 0, "score": 64, "signal": "", "found": ["154 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (154 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "AC Solutions Air Conditioning and Heating", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "602-788-0909", "website": "", "seg": "P1", "fit": 39, "sigPts": 0, "score": 64, "signal": "", "found": ["230 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (230 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Bell Air Conditioning, LLC.", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "623-748-3324", "website": "bellairconditioningaz.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 0, "signal": "Closed after hours", "found": ["8,114 Google reviews, 4.9 rating", "Listed hours: Mon 6:00 AM – 10:30 PM", "Website: bellairconditioningaz.com", "Owner name and email not found yet"], "why": "Disqualified: Likely over 50 employees (8,114 Google reviews).", "dq": "Likely over 50 employees (8,114 Google reviews)"}, {"company": "Aire Serv of E Glendale-Peoria", "industry": "HVAC", "city": "Glendale", "state": "AZ", "phone": "623-246-1565", "website": "", "seg": "L1", "fit": 29, "sigPts": 0, "score": 0, "signal": "", "found": ["41 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Disqualified: Franchise location.", "dq": "Franchise location"}, {"company": "Total Care Heating & Cooling LLC", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "602-550-0722", "website": "", "seg": "P1", "fit": 39, "sigPts": 10, "score": 80, "signal": "Closed after hours", "found": ["212 Google reviews, 5.0 rating", "Listed hours: Mon 6:00 AM – 6:00 PM; closed Sunday", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 80, from the 6 checks possible with Google data: trade, market, size (212 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "HilCo Air Conditioning & Heating", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "623-972-5195", "website": "", "seg": "P1", "fit": 39, "sigPts": 0, "score": 64, "signal": "", "found": ["283 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (283 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Hunter Brothers Heating & AC", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "623-343-7600", "website": "hunterhvac.homes", "seg": "L1", "fit": 34, "sigPts": 0, "score": 56, "signal": "", "found": ["95 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website: hunterhvac.homes", "Owner name and email not found yet"], "why": "Score 56, from the 6 checks possible with Google data: trade, market, size (95 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Anthony James Air Conditioning & Heating", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "623-556-3852", "website": "", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["923 Google reviews, 5.0 rating", "Listed hours: Mon 8:00 AM – 6:00 PM", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (923 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "Glendale HVAC Contractor Pro LLC", "industry": "HVAC", "city": "Glendale", "state": "AZ", "phone": "623-292-8992", "website": "", "seg": "L1", "fit": 29, "sigPts": 10, "score": 64, "signal": "Closed after hours", "found": ["13 Google reviews, 5.0 rating", "Listed hours: Mon 8:00 AM – 8:00 PM", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (13 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "All Season Plumbing And Air", "industry": "HVAC", "city": "Glendale", "state": "AZ", "phone": "623-292-7548", "website": "", "seg": "P1", "fit": 39, "sigPts": 0, "score": 64, "signal": "", "found": ["142 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Score 64, from the 6 checks possible with Google data: trade, market, size (142 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Air-zona Air Conditioning, Heating & Ventilation L.L.C.", "industry": "HVAC", "city": "Peoria", "state": "AZ", "phone": "602-584-5439", "website": "air-zona.net", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["937 Google reviews, 4.9 rating", "Listed hours: Mon 8:00 AM – 5:00 PM; closed Saturday, Sunday", "Website: air-zona.net", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (937 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "John's Heating, Cooling, and Plumbing", "industry": "HVAC", "city": "Mesa", "state": "AZ", "phone": "480-648-0921", "website": "", "seg": "L2", "fit": 33, "sigPts": 0, "score": 0, "signal": "", "found": ["3,450 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website not retrieved yet", "Owner name and email not found yet"], "why": "Disqualified: Likely over 50 employees (3,450 Google reviews).", "dq": "Likely over 50 employees (3,450 Google reviews)"}, {"company": "AZ Home Services Group AC Repair & Plumbing Services", "industry": "HVAC", "city": "Tempe", "state": "AZ", "phone": "602-806-7212", "website": "azhomeservices.group", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["1,490 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website: azhomeservices.group", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (1,490 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Air Care Cooling & Heating LLC.", "industry": "HVAC", "city": "Mesa", "state": "AZ", "phone": "480-238-2273", "website": "aircareaz.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["802 Google reviews, 4.8 rating", "Listed hours: Mon 7:00 AM – 7:00 PM", "Website: aircareaz.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (802 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "AC Repair Near Me", "industry": "HVAC", "city": "Chandler", "state": "AZ", "phone": "602-780-7100", "website": "acrepairnearme.services", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["933 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website: acrepairnearme.services", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (933 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Climate Pro LLC", "industry": "HVAC", "city": "Chandler", "state": "AZ", "phone": "480-485-7151", "website": "climateprollc.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 0, "signal": "", "found": ["3,293 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website: climateprollc.com", "Owner name and email not found yet"], "why": "Disqualified: Likely over 50 employees (3,293 Google reviews).", "dq": "Likely over 50 employees (3,293 Google reviews)"}, {"company": "Accurate Air", "industry": "HVAC", "city": "Tempe", "state": "AZ", "phone": "480-894-2998", "website": "accurateairac.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["504 Google reviews, 5.0 rating", "Listed as open 24 hours, 7 days", "Website: accurateairac.com", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (504 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "AirTime Cooling and Heating", "industry": "HVAC", "city": "Mesa", "state": "AZ", "phone": "480-776-7993", "website": "airtimeaz.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["1,802 Google reviews, 4.9 rating", "Listed hours: Mon 7:00 AM – 7:00 PM", "Website: airtimeaz.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (1,802 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "Bumble Bee Air Conditioning", "industry": "HVAC", "city": "Tempe", "state": "AZ", "phone": "480-966-2901", "website": "bumblebeeairconditioning.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["981 Google reviews, 4.9 rating", "Listed hours: Mon 7:00 AM – 8:00 PM; closed Sunday", "Website: bumblebeeairconditioning.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (981 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}, {"company": "Hansen Family Air Conditioning & Plumbing", "industry": "HVAC", "city": "Mesa", "state": "AZ", "phone": "602-805-4831", "website": "hansenfamilyplumbing.com", "seg": "L2", "fit": 33, "sigPts": 0, "score": 54, "signal": "", "found": ["1,441 Google reviews, 4.9 rating", "Listed as open 24 hours, 7 days", "Website: hansenfamilyplumbing.com", "Owner name and email not found yet"], "why": "Score 54, from the 6 checks possible with Google data: trade, market, size (1,441 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. No pain signal found yet; qualified on size and trade.", "dq": null}, {"company": "Everest Air LLC", "industry": "HVAC", "city": "Mesa", "state": "AZ", "phone": "480-828-2705", "website": "everestairaz.com", "seg": "L2", "fit": 33, "sigPts": 10, "score": 70, "signal": "Closed after hours", "found": ["1,039 Google reviews, 4.9 rating", "Listed hours: Mon 8:00 AM – 5:00 PM", "Website: everestairaz.com", "Owner name and email not found yet"], "why": "Score 70, from the 6 checks possible with Google data: trade, market, size (1,039 reviews), residential focus, listed hours, review complaints. Website, hiring and ownership are not checked yet. Primary signal: closed after hours.", "dq": null}].map((d,i)=>{const p={id:100001+i,contact:'',title:'',email:'',linkedin:'',source:'Discovered by BestMate',owner:'Unassigned',tags:[],custom:{},added:T0+(7*60+i*2)*6e4,steps:[],log:[],reply:null,meeting:null,paused:false,slot:false,camp:'c-phx',...d};
+  p.tier=p.dq?'Disqualified':p.score>=70?'High':p.score>=50?'Medium':'Low';return p});
+(()=>{const q=REAL.filter(p=>!p.dq).sort((a,b)=>b.score-a.score), starts=[9,9,7,6,6,5,3,3,2,2,1,1,0,0,0,0,0,0,0,0];
+  q.slice(0,starts.length).forEach((p,i)=>{p.slot=true;p.owner='Tarush';p.steps=plan(p,T0-starts[i]*DAY)});
+  const rep=(i,type,hrs)=>{const p=q[i];if(!p.steps.some(s=>s.kind==='email'&&s.done))return;const t=NOW-hrs*36e5;p.reply={t,type,text:pick(REPLY[type][0]),positive:REPLY[type][1],handled:false,demo:true};p.steps=p.steps.filter(s=>s.t<t)};
+  rep(2,'interested',3);rep(5,'pricing',1);rep(8,'question',20);rep(0,'interested',50);if(q[0].reply){q[0].reply.handled=true;q[0].meeting=NOW-26*36e5}
+})();
+const STORE={sample:P.slice(),live:REAL};
+const SN={AZ:'Arizona',TX:'Texas',FL:'Florida',GA:'Georgia',NC:'North Carolina'};
+const CAMPS={sample:Object.keys(SN).map(st=>({id:'c-'+st,name:'Home services · '+SN[st],trades:['HVAC','Plumbing','Electrical','Roofing'],city:'',state:st,target:5,status:'Active'})),
+  live:[{id:'c-phx',name:'HVAC · Phoenix, AZ',trades:['HVAC'],city:'Phoenix',state:'AZ',target:25,status:'Active'}]};
+CAMPS.conn=[];STORE.conn=[];
+// ---- Connected mode: reads and writes the real database through the /api routes ----
+async function api(path,opt={}){const res=await fetch(path,{method:opt.method||'GET',headers:{'Content-Type':'application/json','x-admin-key':S.key||''},body:opt.body?JSON.stringify(opt.body):undefined});
+  const j=await res.json().catch(()=>({}));if(!res.ok)throw new Error(j.error||('server returned '+res.status));return j}
+function mapRow(row,i){const ts=x=>x?Date.parse(x):null, rt=['interested','pricing','question','objection'].includes(row.reply_type)?row.reply_type:'question';
+  const p={id:200001+i,rid:row.id,remote:true,company:row.company,industry:row.industry||'',city:row.city||'',state:row.state||'',contact:row.contact||'',title:row.title||'',email:row.email||'',phone:row.phone||'',linkedin:row.linkedin||'',website:row.domain||row.website||'',
+    source:row.source||'Discovered by BestMate',owner:row.owner||'Unassigned',tags:[],custom:{},seg:row.segment||'—',fit:row.fit,sigPts:row.signal_pts,score:row.dq_reason?0:row.score,tier:row.tier||'Unscored',signal:row.signal||'',added:ts(row.created_at)||Date.now(),
+    found:Array.isArray(row.found)?row.found:[],why:row.why||'',steps:row.pushed_at?[{t:ts(row.last_contact_at)||ts(row.pushed_at),kind:'email',n:1,done:true}]:[],log:[],reply:null,meeting:ts(row.meeting_at),paused:false,slot:!!row.pushed_at,dq:row.dq_reason||null,camp:row.campaign_id,override:row.status};
+  if(row.reply_at||row.status==='Needs you')p.reply={t:ts(row.reply_at)||ts(row.updated_at)||Date.now(),type:rt,text:row.reply_text||'(reply text not captured)',positive:rt!=='objection',handled:row.status!=='Needs you'};
+  return p}
+async function loadConn(){const [c,l]=await Promise.all([api('/api/campaigns'),api('/api/leads')]);
+  CAMPS.conn=c.campaigns.map(x=>({id:x.id,name:x.name,trades:x.trades||[],city:x.city||'',state:x.state,target:x.daily_target,status:x.status==='Queued'?'Queued':'Active',sender:x.sender_campaign_id||''}));
+  STORE.conn=l.leads.map(mapRow);const keep=S.data==='conn'?S.camp:'';S.data='conn';S.camp=CAMPS.conn.some(x=>x.id===keep)?keep:'';S.sel.clear();S.open=null;applyScope();render()}
+function connect(){if(!S.key){S.askKey=true;return render()}toast('Connecting…');loadConn().then(()=>{S.askKey=false;try{localStorage.setItem('bm-key',S.key)}catch(e){}render();toast('Connected')}).catch(e=>{toast('Not connected: '+(/fetch|404|405/i.test(e.message)?'the server routes only exist on the deployed site':e.message));if(/admin key/.test(e.message)){S.key='';S.askKey=true;render()}})}
+function syncLead(p,a){const b={id:p.rid,status:status(p)};if(a==='meeting')b.meeting=true;if(a==='note'){const n=p.log[p.log.length-1];if(n)b.note=n.h.replace(/^Note: /,'')}
+  api('/api/leads',{method:'PATCH',body:b}).catch(e=>toast('Not saved: '+e.message))}
+function applyScope(){P.length=0;P.push(...STORE[S.data].filter(p=>!S.camp||p.camp===S.camp))}
+function useData(k){S.data=k;S.camp='';S.sel.clear();S.open=null;S.page=0;applyScope()}
+function addLead(l){l.camp=S.camp||null;STORE[S.data].unshift(l);applyScope()}
+const TILEPOS={AK:[0,0],ME:[10,0],VT:[9,1],NH:[10,1],WA:[0,2],ID:[1,2],MT:[2,2],ND:[3,2],MN:[4,2],IL:[5,2],WI:[6,2],MI:[7,2],NY:[8,2],RI:[9,2],MA:[10,2],OR:[0,3],NV:[1,3],WY:[2,3],SD:[3,3],IA:[4,3],IN:[5,3],OH:[6,3],PA:[7,3],NJ:[8,3],CT:[9,3],CA:[0,4],UT:[1,4],CO:[2,4],NE:[3,4],MO:[4,4],KY:[5,4],WV:[6,4],VA:[7,4],MD:[8,4],DE:[9,4],AZ:[1,5],NM:[2,5],KS:[3,5],AR:[4,5],TN:[5,5],NC:[6,5],SC:[7,5],DC:[8,5],OK:[3,6],LA:[4,6],MS:[5,6],AL:[6,6],GA:[7,6],HI:[0,7],TX:[3,7],FL:[8,7]};
+const TRADE_T={HVAC:'t-violet',Plumbing:'t-blue',Electrical:'t-amber',Roofing:'t-green'};
+/* ================= derived state ================= */
+const ST=['Not contacted','Ready to contact','Contacted','Awaiting response','Follow-up scheduled','Replied','Needs you','Meeting booked','Not interested','Disqualified'];
+const STC={'Not contacted':'s-mute','Ready to contact':'s-warn','Contacted':'s-info','Awaiting response':'s-info','Follow-up scheduled':'s-info','Replied':'s-good','Needs you':'s-hir','Meeting booked':'s-good','Not interested':'s-mute','Disqualified':'s-mute'};
+const STOP=['Needs you','Meeting booked','Not interested','Disqualified','Replied'];
+function status(p){
+  if(p.override) return p.override;
+  if(p.dq) return 'Disqualified';
+  if(p.meeting) return 'Meeting booked';
+  if(p.reply){ if(p.reply.type==='notint') return 'Not interested'; return p.reply.handled?'Replied':'Needs you'; }
+  if(!p.slot) return p.score>=50?'Ready to contact':'Not contacted';
+  const sent=p.steps.filter(s=>s.kind==='email'&&s.done);
+  if(!sent.length) return 'Ready to contact';
+  if(p.steps.some(s=>!s.done)) return sent.length===1?'Contacted':'Follow-up scheduled';
+  return 'Awaiting response';
+}
+const stepName=s=>s.kind==='email'?'Email '+s.n:s.kind==='linkedin'?'LinkedIn':'Call';
+const fmt=t=>{const d=new Date(t);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
+const fmtD=t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const lastC=p=>{let t=0;p.steps.forEach(s=>{if(s.done&&!s.skipped&&s.t>t)t=s.t});return t};
+const nextS=p=>p.steps.find(s=>!s.done);
+function nextAction(p){ const st=status(p);
+  if(st==='Needs you') return 'Reply to '+(p.contact||'lead').split(' ')[0];
+  if(STOP.includes(st)) return '—';
+  if(p.paused) return 'Paused';
+  if(p.score==null&&!p.slot) return 'Enrich and score';
+  if(st==='Not contacted') return 'Held, re-score monthly';
+  const s=nextS(p); if(s) return stepName(s)+' · '+fmtD(s.t);
+  return p.slot?'Sequence finished':p.email?'Add to sequence':'Find owner email'; }
+const channels=p=>{const k=new Set(p.steps.filter(s=>s.done&&!s.skipped).map(s=>s.kind));return ['email','linkedin','call'].filter(x=>k.has(x)).map(x=>({email:'Email',linkedin:'LinkedIn',call:'Phone'}[x])).join(' · ')||'—'};
+const subjectFor=p=>`Eight minutes after the lead arrives at ${p.company}`;
+function emailBody(p,n){ const f=(p.contact||'there').split(' ')[0], c=p.company;
+  const t={HVAC:'HVAC',Plumbing:'plumbing',Electrical:'electrical',Roofing:'roofing'}[p.industry]||(p.industry?p.industry.toLowerCase():'home service');
+  const sig={'Hiring dispatcher':`Saw ${c} is hiring a dispatcher. That's usually the same problem from the other side: more coming in than the office can get back to.`,
+   'Hiring office manager':`Saw ${c} is hiring an office manager. That's usually the same problem from the other side: more coming in than the office can get back to.`,
+   'Reviews: hard to reach':`${c}'s reviews are strong. The few that aren't are about getting a call back, which is the exact gap this pilot is about.`,
+   'No online booking':`Noticed customers can only call or fill in a form on ${c}'s site, so every lead waits on someone being free.`,
+   'Closed after hours':`${c}'s Google listing shows set office hours rather than 24/7, which is exactly the window this pilot is about.`,
+   'Outgrowing basic tool':`I saw ${c} already runs booking software, so this isn't about replacing it. It's about the minutes between a lead arriving and someone answering.`,
+   'Fast review growth':`${c} has picked up a lot of new reviews lately. Growth like that tends to stretch response time first.`}[p.signal];
+  if(n===1) return `Hi ${f}, most ${t} companies I've spoken with don't have a lead-generation problem. They have an eight-minutes-after-the-lead-arrives problem.\n\nI'm the founder of BestMate. I'm selecting 20 $1M+ ${t} operators for a paid pilot focused on what happens when teams are busy, on jobs, or off-hours. Pilot partners will help shape the product and receive locked-in founding-partner pricing. Plus we do on-site visits for a closer collaboration.\n\nWould you be open to a 15-minute conversation about how ${c} handles this today?\n\nTarush`;
+  if(n===2) return `Hi ${f}, following up on my note about the pilot.\n\n${sig?sig+'\n\n':''}I still have spots open for ${t} operators. Open to 15 minutes this week? https://cal.com/tarush-bali-ntpnl9/15min\n\nTarush`;
+  if(n===3) return `Hi ${f}, the reason I'm reaching out to operators directly: I'd rather build this around how a ${t} shop really runs than guess from the outside. That's what the on-site visits are for.\n\nWould 15 minutes work to see whether ${c} is a fit for the pilot? https://cal.com/tarush-bali-ntpnl9/15min\n\nTarush`;
+  return `Hi ${f}, I'll close the loop here so I'm not crowding your inbox.\n\nIf response time when the crew is busy becomes a priority for ${c}, reply any time and we can set up 15 minutes.\n\nTarush`; }
+function assist(p){const A=assist0(p);if(A&&p.reply.demo)A.tag='Demo · '+A.tag;return A}
+function assist0(p){ const f=(p.contact||'The owner').split(' ')[0], t=p.reply.type, g=p.contact?f:'there';
+  return {interested:{tag:'Interested',cta:'Book call',sum:`${f} is open to a call and suggested a time. No objections.`,next:'Confirm the time and send the invite.',
+     draft:`Hi ${g},\n\nThat works. I'll send an invite for 15 minutes, or grab whichever slot suits you here: https://cal.com/tarush-bali-ntpnl9/15min\n\nTarush`},
+   pricing:{tag:'Asked about price',cta:'Send pricing',sum:`${f} asked what it costs. Buying interest. No price has been shared so far.`,next:'Keep numbers out of email. Explain founding-partner pricing on the call.',
+     draft:`Hi ${g},\n\nFair question. Pilot partners get founding-partner pricing that stays locked in, and the number depends on the size of the team. Easiest to walk through on a 15-minute call.\n\nDoes a time this week work? https://cal.com/tarush-bali-ntpnl9/15min\n\nTarush`},
+   question:{tag:'Question',cta:'Answer',sum:`${f} asked a specific question before agreeing to a call.`,next:'Answer it accurately, then offer the call.',
+     draft:`Hi ${g},\n\n[Answer their question here. Check the facts before sending.]\n\nHappy to go through it properly in 15 minutes: https://cal.com/tarush-bali-ntpnl9/15min\n\nTarush`},
+   objection:{tag:'Objection',cta:'Reply',sum:`${f} feels covered today. A pushback, not a refusal.`,next:'Acknowledge it. Offer the one narrow thing the pilot is about.',
+     draft:`Hi ${g},\n\nFair enough. If what you have covers it, there's no reason to change. The pilot is about one narrow thing: what happens to a lead when everyone is on a job or it's after hours. If that's ever a gap, 15 minutes would show whether we'd help.\n\nhttps://cal.com/tarush-bali-ntpnl9/15min\n\nTarush`}}[t]; }
+const needRow=(p,full)=>{const a=assist(p);return `<div class="nrow k-${p.reply.type}" data-id="${p.id}" tabindex="0"><div><b class="co">${esc(p.company)}</b><div class="meta"><span class="tg">${a.tag}</span> · ${fmt(p.reply.t)}${full?' · '+esc([p.contact,p.city].filter(Boolean).join(', ')):''}</div><div class="q">“${esc(p.reply.text)}”</div>${full?`<div class="meta" style="margin-top:4px">Next: ${esc(a.next)}</div>`:''}</div><div class="side2"><button class="link" data-open="${p.id}">${a.cta} →</button>${full?`<button class="link quiet" data-a="meeting" data-p="${p.id}">Meeting booked</button><button class="link quiet" data-a="notint" data-p="${p.id}">Not interested</button>`:''}</div></div>`};
+const bindOpen=()=>document.querySelectorAll('[data-open]').forEach(b=>b.onclick=e=>{e.stopPropagation();S.open=+b.dataset.open;drawer()});
+
+/* ================= state, ranges, filters ================= */
+const S={key:(()=>{try{return localStorage.getItem('bm-key')||''}catch(e){return ''}})(),askKey:false,setSender:'',camp:'',per:'week',calOff:0,newCamp:false,data:'sample',view:'overview',range:'today',lrange:'all',from:'',to:'',f:{status:'',tier:'',source:'',owner:'',channel:'',q:'',special:''},sort:{k:'default',d:-1},page:0,open:null,sel:new Set()};
+function range(key=S.range){ const end=T0+DAY, dow=(new Date(T0).getDay()+6)%7;
+  switch(key){case 'today':return[T0,end];case 'yesterday':return[T0-DAY,T0];case 'week':return[T0-dow*DAY,end];case 'last7':return[T0-6*DAY,end];
+   case 'month':{const m=new Date(T0);m.setDate(1);return[m.getTime(),end]}
+   case 'last30':return[T0-29*DAY,end];
+   case 'custom':{const a=S.from?sod(S.from+'T00:00').getTime():T0-29*DAY,b=S.to?sod(S.to+'T00:00').getTime()+DAY:end;return[a,b]}
+   default:return[0,Infinity]}}
+const RL={today:'Today',last7:'7 days',last30:'30 days',custom:'Custom',all:'All'};
+const inR=(t,r)=>t>=r[0]&&t<r[1];
+const SPEC={
+ contacted:{l:()=>'First contacted · '+RL[S.range].toLowerCase(),fn:p=>p.steps.some(s=>s.kind==='email'&&s.n===1&&s.done&&inR(s.t,range()))},
+ followups:{l:()=>'Follow-ups due today',fn:p=>!p.paused&&!STOP.includes(status(p))&&p.steps.some(s=>!s.done&&s.t<T0+DAY&&!(s.kind==='email'&&s.n===1))},
+ replied:{l:()=>'Replied · '+RL[S.range].toLowerCase(),fn:p=>p.reply&&inR(p.reply.t,range())},
+ meetings:{l:()=>'Meetings · '+RL[S.range].toLowerCase(),fn:p=>p.meeting&&inR(p.meeting,range())},
+ qualified:{l:()=>'Qualified',fn:p=>!p.dq&&p.score>=50&&status(p)!=='Disqualified'},
+ inseq:{l:()=>'In sequence',fn:p=>['Contacted','Follow-up scheduled','Awaiting response'].includes(status(p))},
+ anyreply:{l:()=>'Replied, all time',fn:p=>!!p.reply}};
+const count=k=>P.filter(SPEC[k].fn).length, byStatus=s=>P.filter(p=>status(p)===s);
+function metrics(list,r){ const m={added:0,qual:0,newc:0,emails:0,li:0,calls:0,fu:0,replies:0,pos:0,meet:0};
+  for(const p of list){ if(inR(p.added,r)){m.added++; if(!p.dq&&p.score>=50)m.qual++;}
+    for(const s of p.steps){ if(!s.done||s.skipped||!inR(s.t,r))continue; if(s.kind==='email'){m.emails++; if(s.n===1)m.newc++; else m.fu++;} else if(s.kind==='linkedin')m.li++; else m.calls++; }
+    if(p.reply&&inR(p.reply.t,r)){m.replies++; if(p.reply.positive)m.pos++;}
+    if(p.meeting&&inR(p.meeting,r))m.meet++; }
+  return m; }
+function active(p,r){ return inR(p.added,r)||p.steps.some(s=>inR(s.t,r))||(p.reply&&inR(p.reply.t,r))||(p.meeting&&inR(p.meeting,r)); }
+function filtered(){ const r=range(S.lrange),f=S.f,q=f.q.toLowerCase();
+  const rows=P.filter(p=>(S.lrange==='all'||active(p,r))&&(!f.status||status(p)===f.status)&&(!f.tier||(f.tier==='Unscored'?p.score==null:p.tier===f.tier))&&(!f.source||p.source===f.source)&&(!f.owner||p.owner===f.owner)
+    &&(!f.channel||p.steps.some(s=>s.done&&s.kind===f.channel))&&(!f.special||SPEC[f.special].fn(p))
+    &&(!q||[p.company,p.contact,p.city,p.state,p.signal,p.email,p.industry,(p.tags||[]).join(' ')].join(' ').toLowerCase().includes(q)));
+  const k=S.sort.k,d=S.sort.d, val={company:p=>p.company.toLowerCase(),contact:p=>(p.contact||'').toLowerCase(),score:p=>p.score==null?-1:p.score,source:p=>p.source,location:p=>(p.state||'')+(p.city||''),status:p=>ST.indexOf(status(p)),last:p=>lastC(p),next:p=>{const s=nextS(p);return s?s.t:Infinity},owner:p=>p.owner}[k];
+  if(val) rows.sort((a,b)=>{const x=val(a),y=val(b);return (x<y?-1:x>y?1:0)*d});
+  else rows.sort((a,b)=>(status(b)==='Needs you')-(status(a)==='Needs you')||b.added-a.added||(b.score||0)-(a.score||0));
+  return rows; }
+const tasks=(h=1)=>{const o=[];P.forEach(p=>{if(p.paused||STOP.includes(status(p)))return;p.steps.forEach(s=>{if(s.kind!=='email'&&!s.done&&s.t<T0+h*DAY)o.push({p,s})})});return o.sort((a,b)=>a.s.t-b.s.t)};
+const outbox=()=>{const o=[];P.forEach(p=>{if(STOP.includes(status(p)))return;p.steps.forEach(s=>{if(s.kind==='email'&&!s.done&&s.t<T0+2*DAY)o.push({p,s})})});return o.sort((a,b)=>a.s.t-b.s.t)};
+const hir=()=>byStatus('Needs you').filter(p=>!p.snoozed).sort((a,b)=>b.reply.t-a.reply.t);
+
+/* ================= shell ================= */
+const $=s=>document.querySelector(s);
+const pill=st=>`<span class="pill ${STC[st]}">${st}</span>`;
+const scoreCell=p=>p.dq?'<span class="sc">—</span>':p.score==null?'<span class="sc">Unscored</span>':`<span class="sc"><b class="num">${p.score}</b> · ${p.tier}</span>`;
+const opts=(arr,cur,all)=>(all?`<option value="">${all}</option>`:'')+arr.map(a=>{const[v,l]=Array.isArray(a)?a:[a,a];return `<option value="${esc(v)}" ${cur===v?'selected':''}>${esc(l)}</option>`}).join('');
+const pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'—';
+function rangeBar(key,withAll){ const ks=(withAll?['all']:[]).concat(['today','last7','last30','custom']);
+  return `<div class="bar"><div class="seg" role="group" aria-label="Date range">${ks.map(k=>`<button data-r="${k}" aria-pressed="${S[key]===k}">${RL[k]}</button>`).join('')}</div>${S[key]==='custom'?`<input type="date" id="from" value="${S.from}" aria-label="From"><span class="muted">to</span><input type="date" id="to" value="${S.to}" aria-label="To">`:''}</div>`; }
+function bindRange(key){ document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{S[key]=b.dataset.r;S.page=0;render()});
+  if($('#from')){ $('#from').onchange=e=>{S.from=e.target.value;render()}; $('#to').onchange=e=>{S.to=e.target.value;render()}; } }
+function go(view,f){ S.view=view; S.page=0; S.sel.clear(); if(f){S.f={status:'',tier:'',source:'',owner:'',channel:'',q:'',special:'',...f}; S.lrange='all';} render(); }
+function head(title,sub,mid){ return `<div class="head"><div><h1>${title}</h1>${sub?`<div class="sub">${sub}</div>`:''}</div>${mid||''}<span class="sp"></span><button class="btn pri" id="addLeads">+ Import / add leads</button></div>`; }
+function render(){
+  const nh=hir().length, nt=tasks().length, no=outbox().length;
+  const nb=(k,l,c,hot)=>`<button data-v="${k}" ${S.view===k?'aria-current="page"':''}>${l}${c!=null?`<span class="cnt ${hot&&c?'hot':''}">${c.toLocaleString()}</span>`:''}</button>`;
+  $('#side').innerHTML=`<div class="brand"><img src="${LOGO}" alt="" width="26" height="26"><span>BESTMATE</span></div><select id="scope" aria-label="Campaign">${opts(CAMPS[S.data].map(c=>[c.id,c.name]),S.camp,'All campaigns')}</select>${nb('overview','Overview')}<div class="grp">Work</div>${nb('campaigns','Campaigns',CAMPS[S.data].length)}${nb('leads','Leads',P.length)}${nb('needs','Needs you',nh,1)}${nb('tasks','Tasks',nt)}${nb('outbox','Outbox',no)}<div class="grp">Insights</div>${nb('analytics','Analytics')}<div class="grp">Data</div><div class="sample"><div class="dsw"><button data-d="sample" aria-pressed="${S.data==='sample'}">Demo</button><button data-d="live" aria-pressed="${S.data==='live'}">Live · Phoenix HVAC</button><button data-d="conn" aria-pressed="${S.data==='conn'}">Connected</button></div>${S.askKey?`<div class="row"><input type="password" id="akey" placeholder="Admin key" aria-label="Admin key" style="flex:1 1 90px;min-width:0;padding:5px 8px"><button class="btn sm" id="akeyGo">Go</button></div>`:''}${S.data==='conn'?'Your own leads, from the database.':S.data==='live'?'Real businesses from Google Places. Outreach and replies are simulated.':'Invented demo leads'}</div>`;
+  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.dataset.d==='conn')return connect();if(b.dataset.d!==S.data){S.askKey=false;useData(b.dataset.d);render()}});
+  if($('#akeyGo')) $('#akeyGo').onclick=()=>{S.key=$('#akey').value.trim();if(S.key)connect()};
+  $('#scope').onchange=e=>{S.camp=e.target.value;S.sel.clear();S.page=0;applyScope();render()};
+  document.querySelectorAll('#side [data-v]').forEach(b=>b.onclick=()=>go(b.dataset.v));
+  ({overview:vOverview,campaigns:vCampaigns,leads:vLeads,needs:vNeeds,tasks:vTasks,outbox:vOutbox,analytics:vAnalytics})[S.view]();
+  const a=$('#addLeads'); if(a) a.onclick=()=>openModal();
+  drawer();
+}
+function rowClicks(){document.querySelectorAll('[data-id]').forEach(r=>{const open=()=>{S.open=+r.dataset.id;drawer()};r.onclick=e=>{if(e.target.closest('button,input,select,a,summary'))return;open()};r.onkeydown=e=>{if(e.key==='Enter'&&e.target===r)open()}})}
+
+/* ================= views ================= */
+function vOverview(){
+  const r=range(), m=metrics(P,r), len=r[1]-r[0], pm=isFinite(len)?metrics(P,[r[0]-len,r[0]]):{newc:0}, nh=hir(), fu=count('followups');
+  const delta=pm.newc>=10&&S.range!=='today'?Math.round(1000*(m.newc-pm.newc)/pm.newc)/10:null;
+  // contacted per day: last 14 days against the 14 before
+  const ser=new Array(28).fill(0); P.forEach(p=>p.steps.forEach(s=>{if(s.kind==='email'&&s.n===1&&s.done){const d=Math.floor((T0+DAY-1-s.t)/DAY);if(d>=0&&d<28)ser[27-d]++}}));
+  const cur=ser.slice(14), prev=ser.slice(0,14), mx=Math.max(10,Math.ceil(Math.max(...ser)/10)*10);
+  const W=640,H=200,L=30,R=12,T=12,B=24,x=i=>L+i*(W-L-R)/13,y=v=>T+(H-T-B)*(1-v/mx),path=a=>a.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  let svg=''; [0,.5,1].forEach(f=>{const v=mx*f;svg+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#E5E7EB"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`});
+  [0,6,13].forEach((i,k)=>{svg+=`<text x="${x(i)}" y="${H-5}" text-anchor="${k===0?'start':k===2?'end':'middle'}">${fmtD(T0-(13-i)*DAY)}</text>`});
+  svg+=`<path d="${path(prev)}" fill="none" stroke="#E7A93B" stroke-width="1.75" stroke-linejoin="round"/><path d="${path(cur)} L${x(13)} ${y(0)} L${x(0)} ${y(0)} Z" fill="#6D4BD8" opacity=".07"/><path d="${path(cur)}" fill="none" stroke="#6D4BD8" stroke-width="2.25" stroke-linejoin="round"/><circle cx="${x(13)}" cy="${y(cur[13])}" r="4.5" fill="#fff" stroke="#6D4BD8" stroke-width="2"/>`;
+  // calendar of meetings
+  const cm=new Date(T0);cm.setDate(1);cm.setMonth(cm.getMonth()+S.calOff); const y0=cm.getFullYear(),mo=cm.getMonth(),dim=new Date(y0,mo+1,0).getDate(),lead=(cm.getDay()+6)%7,pdim=new Date(y0,mo,0).getDate();
+  const md=new Set();let mcount=0;P.forEach(p=>{if(p.meeting){const d=new Date(p.meeting);if(d.getFullYear()===y0&&d.getMonth()===mo){md.add(d.getDate());mcount++}}});
+  const td=new Date(T0),isCur=td.getFullYear()===y0&&td.getMonth()===mo;
+  let cal=['Mo','Tu','We','Th','Fr','Sa','Su'].map(d=>`<span class="dow">${d}</span>`).join('');
+  for(let i=lead;i>0;i--)cal+=`<span class="out">${pdim-i+1}</span>`;
+  for(let d=1;d<=dim;d++)cal+=`<span class="${md.has(d)?'on':''}${isCur&&d===td.getDate()?' tdy':''}">${d}</span>`;
+  for(let d=1,t=(7-(lead+dim)%7)%7;d<=t;d++)cal+=`<span class="out">${d}</span>`;
+  // outreach volume
+  const pr={today:[T0,T0+DAY],week:[T0-6*DAY,T0+DAY],month:[T0-29*DAY,T0+DAY]}[S.per], om=metrics(P,pr);
+  const be=new Array(7).fill(0),bo=new Array(7).fill(0);P.forEach(p=>p.steps.forEach(s=>{if(!s.done||s.skipped)return;const d=Math.floor((T0+DAY-1-s.t)/DAY);if(d>=0&&d<7)(s.kind==='email'?be:bo)[6-d]++}));
+  const bm=Math.max(1,...be,...bo), dl=i=>new Date(T0-(6-i)*DAY).toLocaleDateString(undefined,{weekday:'short'});
+  // replies by trade
+  const tg={};P.forEach(p=>{const k=p.industry||'Other',g=tg[k]=tg[k]||{c:0,r:0,sig:{}};if(p.steps.some(s=>s.kind==='email'&&s.done)){g.c++;if(p.signal)g.sig[p.signal]=(g.sig[p.signal]||0)+1}if(p.reply)g.r++});
+  const trades=Object.entries(tg).sort((a,b)=>b[1].r-a[1].r||b[1].c-a[1].c).slice(0,4);
+  // score mix and states
+  const tot=Math.max(1,P.length), sc=[['High','var(--violet)','#fff'],['Medium','var(--pri)','#fff'],['Low','var(--yellow)','var(--fg)'],['Disqualified','#C5C9D1','var(--fg)']].map(([t,bg,fg])=>({t,bg,fg,pc:Math.round(100*P.filter(p=>p.tier===t).length/tot)}));
+  const stc={};P.forEach(p=>{if(p.state)stc[p.state]=(stc[p.state]||0)+1});const sts=Object.entries(stc).sort((a,b)=>b[1]-a[1]),SH=['#4B2FB3','#6D4BD8','#8B6FE2','#A18BEA','#BDAEF1'],shade=Object.fromEntries(sts.map(([k],i)=>[k,SH[Math.min(i,4)]]));
+  const pl=[[P.length,'Leads',['leads',{}],''],[count('qualified'),'Qualified',['leads',{special:'qualified'}],''],[byStatus('Ready to contact').length,'Ready to contact',['leads',{status:'Ready to contact'}],''],[count('inseq'),'In sequence',['leads',{special:'inseq'}],''],[count('anyreply'),'Replied',['leads',{special:'anyreply'}],''],[nh.length,'Needs a human',['needs'],nh.length?'urgent':''],[byStatus('Meeting booked').length,'Meetings',['leads',{status:'Meeting booked'}],'won']];
+  const go1=a=>`data-go='${JSON.stringify(a)}'`;
+  $('#main').innerHTML=head('Overview',NOW.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}),rangeBar('range'))+`
+   <div class="ogrid">
+    <section class="pcard c6"><div class="hd"><h2>Leads contacted · ${RL[S.range]}</h2><span class="row"><span class="key"><i style="background:var(--violet)"></i>Last 14 days</span><span class="key"><i style="background:var(--yellow)"></i>14 days before</span></span></div>
+     <div class="split"><button class="plain" ${go1(['leads',{special:'contacted'}])}><span class="row"><span class="bn">${m.newc.toLocaleString()}</span>${delta==null?'':`<span class="delta ${delta<0?'down':''}">${delta>0?'+':''}${delta}%</span>`}</span><span class="cap">first emails sent${S.range==='today'?' · target 25':''}</span></button>
+      <button class="plain" ${go1(['leads',{special:'replied'}])}><span class="mn">${m.replies}</span><span class="cap">replies · ${m.pos} positive · ${pct(m.replies,m.newc)} reply rate</span></button>
+      <button class="plain" ${go1(['leads',{special:'followups'}])}><span class="mn ${fu?'amber':''}">${fu}</span><span class="cap">follow-ups due today</span></button></div>
+     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Leads contacted per day, last 14 days against the 14 days before">${svg}</svg></section>
+    <section class="pcard c3"><div class="hd"><div class="mnav"><button data-cal="-1" aria-label="Previous month">‹</button>${cm.toLocaleDateString(undefined,{month:'long',year:'numeric'})}<button data-cal="1" aria-label="Next month">›</button></div><button class="round" ${go1(['leads',{status:'Meeting booked'}])} aria-label="View meetings">→</button></div>
+     <div class="cal">${cal}</div><div><div class="bn">${mcount}</div><div class="cap">meeting${mcount===1?'':'s'} booked this month · highlighted days</div></div></section>
+    <section class="pcard c3"><div class="hd"><h2>Outreach sent</h2></div><div class="bn">${(om.emails+om.li+om.calls).toLocaleString()}</div>
+     <div class="seg">${[['today','Today'],['week','Week'],['month','Month']].map(([k,l])=>`<button data-per="${k}" aria-pressed="${S.per===k}">${l}</button>`).join('')}</div>
+     <div class="split"><div><span class="key"><i style="background:var(--violet)"></i>Email</span><div class="mn">${om.emails.toLocaleString()}</div></div><div><span class="key"><i style="background:var(--yellow)"></i>LinkedIn + calls</span><div class="mn">${(om.li+om.calls).toLocaleString()}</div></div></div>
+     <div><div class="bars">${be.map((v,i)=>`<div title="${dl(i)}: ${v} emails, ${bo[i]} LinkedIn and calls"><i style="height:${100*v/bm}%;background:var(--violet)"></i><i style="height:${100*bo[i]/bm}%;background:var(--yellow)"></i></div>`).join('')}</div><div class="blab">${be.map((v,i)=>`<span>${dl(i)}</span>`).join('')}</div></div></section>
+
+    <section class="queue c7"><div class="sh"><h2>Needs you <span class="${nh.length?'urgent':''}">${nh.length}</span></h2>${nh.length?`<button class="link" ${go1(['needs'])}>View all ${nh.length}</button>`:''}</div>
+     <div class="rows">${nh.slice(0,4).map(p=>needRow(p)).join('')||'<div class="meta" style="padding:18px 16px">Nobody is waiting on you.</div>'}</div></section>
+    <section class="pcard c5"><div class="hd"><h2>Pipeline</h2></div><div class="fun">${pl.map(([v,l,a,c])=>`<button ${go1(a)} class="${c}"><span>${l}</span><span class="fb"><i style="width:${Math.max(2,100*v/tot)}%"></i></span><b class="num">${v.toLocaleString()}</b></button>`).join('')}</div></section>
+
+    <section class="pcard c4"><div class="hd"><h2>Replies by trade</h2><span class="cap">replies · reply rate</span></div><div class="olist">${trades.map(([k,g])=>{const top=Object.entries(g.sig).sort((a,b)=>b[1]-a[1])[0];return `<button class="item" ${go1(['leads',{q:k}])}><span class="thumb ${TRADE_T[k]||'t-blue'}">${esc(k.slice(0,2).toUpperCase())}</span><span><b>${esc(k)}</b><span class="tagrow">${top?`<span class="tag ${TRADE_T[k]||'t-blue'}">${esc(top[0])}</span>`:`<span class="cap">${g.c} contacted</span>`}</span></span><span class="m"><b>${g.r}</b><span class="cap">${pct(g.r,g.c)}</span></span></button>`}).join('')||'<div class="meta">No outreach yet.</div>'}</div></section>
+    <section class="pcard c3"><div class="hd"><h2>Lead score mix</h2></div><div class="bub">${sc.filter(c=>c.pc>0).map(c=>{const d=Math.round(46+Math.sqrt(c.pc)*13);return `<div style="width:${d}px;height:${d}px;background:${c.bg};color:${c.fg};font-size:${Math.max(12,Math.round(d/5))}px">${c.pc}%</div>`}).join('')}</div>
+     <div class="legend">${sc.map(c=>`<div><b>${c.pc}%</b>${c.t}</div>`).join('')}</div></section>
+    <section class="pcard c5"><div class="hd"><h2>Leads by state</h2><span class="cap">darker = more leads</span></div><div class="geo"><div class="tiles">${Object.entries(TILEPOS).map(([k,[c,rw]])=>`<span style="grid-column:${c+1};grid-row:${rw+1};${shade[k]?`background:${shade[k]};color:#fff;font-weight:600`:''}">${k}</span>`).join('')}</div>
+     <div><div class="bn">${P.length.toLocaleString()}</div><div class="cap">leads across ${sts.length} state${sts.length===1?'':'s'}</div><div class="rank">${sts.slice(0,5).map(([k,v])=>`<div><span class="st" style="background:${shade[k]}">${k}</span><span>${SN[k]||k}</span><b class="num">${v.toLocaleString()}</b></div>`).join('')}</div></div></div></section>
+   </div>`;
+  bindRange('range'); bindOpen(); rowClicks();
+  document.querySelectorAll('[data-go]').forEach(b=>{b.onclick=()=>{const[v,x]=JSON.parse(b.dataset.go);go(v,x)}});
+  document.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{S.per=b.dataset.per;render()});
+  document.querySelectorAll('[data-cal]').forEach(b=>b.onclick=()=>{S.calOff+=+b.dataset.cal;render()});
+}
+const ICP_TRADES=['HVAC','Plumbing','Electrical','Roofing','Pest control','Landscaping','Pool service','Garage doors','Cleaning','Handyman'];
+const STATES='AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
+function vCampaigns(){ const all=STORE[S.data], cs=CAMPS[S.data];
+  const row=c=>{const l=all.filter(p=>p.camp===c.id);return `<tr data-camp="${c.id}" tabindex="0" class="${S.camp===c.id?'sel':''}"><td class="w"><span class="lead-co">${esc(c.name)}</span><div class="sub2">${esc(c.trades.join(', '))}</div></td><td>${esc([c.city,c.state].filter(Boolean).join(', '))}</td><td class="num">${l.length.toLocaleString()}</td><td class="num">${l.filter(p=>lastC(p)).length}</td><td class="num">${l.filter(p=>p.reply).length}</td><td class="num">${l.filter(p=>status(p)==='Needs you').length}</td><td class="num">${l.filter(p=>p.meeting).length}</td><td class="num">${c.target} / day</td><td>${c.status==='Active'?'<span class="pill s-good">Active</span>':'<span class="pill s-warn">Waiting for discovery</span>'}</td><td style="text-align:right;white-space:nowrap"><button class="btn sm" data-camp="${c.id}">Open</button>${S.data==='conn'?` <details class="menu" style="display:inline-block"><summary class="btn sm">Run ▾</summary><div class="pop"><button data-run="discover" data-c="${c.id}">Find leads on Google</button><button data-run="enrich" data-c="${c.id}">Find owner emails</button><button data-run="push" data-c="${c.id}">Push today's batch to sender</button><button data-run="sender" data-c="${c.id}">${c.sender?'Change':'Set'} sending-tool campaign ID</button></div></details>`:''}</td></tr>`};
+  $('#main').innerHTML=head('Campaigns',`${cs.length} campaign${cs.length===1?'':'s'} · each is a set of trades in one city or state`)+(S.newCamp?`
+   <form id="campForm" class="pcard" novalidate><div class="hd"><h2>New campaign</h2></div>
+    <div><div class="lab">Trades</div><div class="row">${ICP_TRADES.map((t,i)=>`<label class="chk"><input type="checkbox" name="trade" value="${t}" ${i===0?'checked':''}> ${t}</label>`).join('')}</div></div>
+    <div class="form"><label>State<select id="c-state">${opts(STATES,'AZ')}</select></label><label>City (leave blank for the whole state)<input type="text" id="c-city" placeholder="e.g. Tucson"></label><label>Daily target<input type="text" id="c-target" value="25" inputmode="numeric"></label><label>Name (optional)<input type="text" id="c-name" placeholder="Built from trade and location"></label></div>
+    ${S.campErr?`<div class="err">${esc(S.campErr)}</div>`:''}
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="campCancel">Cancel</button><button type="submit" class="btn pri">Create campaign</button></div></form>`:`<div><button class="btn pri" id="newCamp">+ New campaign</button>${S.camp?` <button class="btn" id="allCamp">Show all campaigns</button>`:''}</div>`)+`
+   ${S.setSender?`<div class="pcard"><div class="hd"><h2>Sending-tool campaign ID</h2></div><div class="row"><input type="text" id="senderId" placeholder="Campaign ID from Smartlead or Instantly" style="flex:1 1 260px" value="${esc((cs.find(c=>c.id===S.setSender)||{}).sender||'')}"><button class="btn pri sm" id="senderSave">Save</button><button class="btn sm" id="senderCancel">Cancel</button></div><div class="meta">This links the campaign to the sequence that sends its emails.</div></div>`:''}
+   <div class="panel"><div class="scroll"><table><thead><tr><th>Campaign</th><th>Location</th><th>Leads</th><th>Contacted</th><th>Replied</th><th>Needs you</th><th>Meetings</th><th>Target</th><th>Status</th><th></th></tr></thead><tbody class="click">${cs.map(row).join('')}</tbody></table></div></div>`;
+  const open=id=>{S.camp=id;applyScope();go('overview')};
+  document.querySelectorAll('[data-run]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const id=b.dataset.c,k=b.dataset.run;if(k==='sender'){S.setSender=id;return render()}
+    toast({discover:'Finding leads on Google. This can take a minute.',enrich:'Looking up owner emails…',push:'Sending the batch to the sending tool…'}[k]);
+    try{const j=await api('/api/'+k,{method:'POST',body:{campaign_id:id}});await loadConn();toast(k==='discover'?`${j.added} new leads, ${j.qualified} qualified, ${j.already_known} already known`:k==='enrich'?`${j.found} contacts found, ${j.generic} generic addresses, ${j.none} with nothing`:(j.pushed?`${j.pushed} leads pushed`:j.note))}catch(err){toast('Failed: '+err.message)}});
+  if($('#senderSave')) $('#senderSave').onclick=async()=>{try{await api('/api/campaigns',{method:'PATCH',body:{id:S.setSender,sender_campaign_id:$('#senderId').value}});S.setSender='';await loadConn();toast('Saved')}catch(err){toast('Failed: '+err.message)}};
+  if($('#senderCancel')) $('#senderCancel').onclick=()=>{S.setSender='';render()};
+  document.querySelectorAll('tr[data-camp]').forEach(t=>{t.onclick=e=>{if(e.target.closest('summary,.pop'))return;open(t.dataset.camp)};t.onkeydown=e=>{if(e.key==='Enter')open(t.dataset.camp)}});
+  if($('#newCamp')) $('#newCamp').onclick=()=>{S.newCamp=true;S.campErr='';render()};
+  if($('#allCamp')) $('#allCamp').onclick=()=>{S.camp='';applyScope();render()};
+  if($('#campCancel')) $('#campCancel').onclick=()=>{S.newCamp=false;render()};
+  if($('#campForm')) $('#campForm').onsubmit=e=>{e.preventDefault();const tr=[...document.querySelectorAll('[name=trade]:checked')].map(x=>x.value),st=$('#c-state').value,city=$('#c-city').value.trim(),tg=parseInt($('#c-target').value,10);
+    if(!tr.length){S.campErr='Pick at least one trade.';return render()} if(!(tg>0&&tg<=200)){S.campErr='Daily target should be between 1 and 200.';return render()}
+    const name=$('#c-name').value.trim()||`${tr.length>2?tr.length+' trades':tr.join(' + ')} · ${city?city+', ':''}${city?st:(SN[st]||st)}`;
+    if(cs.some(c=>c.name.toLowerCase()===name.toLowerCase())){S.campErr='A campaign with that name already exists.';return render()}
+    if(S.data==='conn'){api('/api/campaigns',{method:'POST',body:{name:$('#c-name').value.trim(),trades:tr,state:st,city,daily_target:tg}}).then(()=>{S.newCamp=false;return loadConn()}).then(()=>toast('Campaign created. Use Run ▾ to find its leads.')).catch(err=>{S.campErr=err.message;render()});return}
+    cs.push({id:'c-'+Date.now(),name,trades:tr,city,state:st,target:tg,status:'Queued'});S.newCamp=false;toast('Campaign created. Lead discovery starts once Google Places is connected.');render()};
+}
+function vLeads(){
+  const rows=filtered(), pages=Math.max(1,Math.ceil(rows.length/25)); S.page=Math.min(S.page,pages-1);
+  const pg=rows.slice(S.page*25,S.page*25+25), allSel=pg.length&&pg.every(p=>S.sel.has(p.id));
+  const th=(k,l)=>`<th><button data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ▲':' ▼'):''}</button></th>`;
+  $('#main').innerHTML=head('Leads',`${rows.length.toLocaleString()} of ${P.length.toLocaleString()} leads`)+rangeBar('lrange',true)+`
+   <div class="bar tools">
+    <input type="search" id="q" placeholder="Search company, contact, location, tag" value="${esc(S.f.q)}" aria-label="Search leads">
+    <select id="f-status" aria-label="Status">${opts(ST,S.f.status,'All statuses')}</select>
+    <select id="f-source" aria-label="Source">${opts(SOURCES,S.f.source,'All sources')}</select>
+    <select id="f-tier" aria-label="Lead score">${opts(['High','Medium','Low','Unscored','Disqualified'],S.f.tier,'All scores')}</select>
+    <select id="f-channel" aria-label="Channel">${opts([['email','Email'],['linkedin','LinkedIn'],['call','Phone']],S.f.channel,'All channels')}</select>
+    <select id="f-owner" aria-label="Owner">${opts(OWNERS,S.f.owner,'All owners')}</select>
+    ${S.f.special?`<span class="pill s-info">${SPEC[S.f.special].l()} <button class="link" id="clrSpec" aria-label="Remove filter" style="font-size:12.5px">✕</button></span>`:''}
+    ${Object.values(S.f).some(Boolean)?'<button class="link" id="clr">Clear filters</button>':''}
+   </div>
+   ${S.sel.size?`<div class="bulk"><b>${S.sel.size} selected</b><button class="btn pri sm" id="b-seq">Add to sequence</button><button class="btn sm" id="b-pause">Pause</button><select id="b-owner" aria-label="Assign owner">${opts(OWNERS,'','Assign owner…')}</select><button class="btn sm dan" id="b-dq">Disqualify</button><button class="link" id="b-none">Clear selection</button></div>`:''}
+   <div class="panel"><div class="scroll"><table><thead><tr><th><input type="checkbox" id="selAll" ${allSel?'checked':''} aria-label="Select all on this page"></th>${th('company','Company')}${th('contact','Contact')}${th('score','Score')}${th('status','Status')}${th('last','Last contact')}${th('next','Next action')}<th>Channel</th>${th('owner','Owner')}</tr></thead>
+    <tbody class="click">${pg.map(p=>`<tr tabindex="0" data-id="${p.id}" class="${S.sel.has(p.id)?'sel':''}"><td><input type="checkbox" data-sel="${p.id}" ${S.sel.has(p.id)?'checked':''} aria-label="Select ${esc(p.company)}"></td><td class="w"><span class="lead-co">${esc(p.company)}</span><div class="sub2">${esc([p.industry,[p.city,p.state].filter(Boolean).join(', '),p.source].filter(Boolean).join(' · '))}</div></td><td>${esc(p.contact||'—')}<div class="sub2">${esc(p.title||'')}</div></td><td>${scoreCell(p)}</td><td>${pill(status(p))}${p.paused?'<span class="pill s-warn">Paused</span>':''}</td><td class="num">${lastC(p)?fmtD(lastC(p)):'—'}</td><td>${esc(nextAction(p))}</td><td>${channels(p)}</td><td>${esc(p.owner)}</td></tr>`).join('')}</tbody></table></div>
+    ${pg.length?'':`<div class="empty" style="border:0;border-radius:0"><b>No leads match</b>Try clearing a filter, or import leads to get started.</div>`}
+    <div class="pager"><span>Page ${S.page+1} of ${pages}</span><button class="btn sm" id="prev" ${S.page?'':'disabled'}>Previous</button><button class="btn sm" id="nextp" ${S.page<pages-1?'':'disabled'}>Next</button></div></div>`;
+  bindRange('lrange');
+  ['status','source','tier','channel','owner'].forEach(k=>$('#f-'+k).onchange=e=>{S.f[k]=e.target.value;S.page=0;render()});
+  $('#q').oninput=e=>{S.f.q=e.target.value;S.page=0;const pos=e.target.selectionStart;render();const q=$('#q');q.focus();q.setSelectionRange(pos,pos)};
+  if($('#clr')) $('#clr').onclick=()=>go('leads',{}); if($('#clrSpec')) $('#clrSpec').onclick=()=>{S.f.special='';render()};
+  $('#prev').onclick=()=>{S.page--;render()}; $('#nextp').onclick=()=>{S.page++;render()};
+  document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{const k=b.dataset.sort;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:k==='score'||k==='last'?-1:1};render()});
+  document.querySelectorAll('[data-sel]').forEach(c=>c.onchange=()=>{const i=+c.dataset.sel;c.checked?S.sel.add(i):S.sel.delete(i);render()});
+  $('#selAll').onchange=e=>{pg.forEach(p=>e.target.checked?S.sel.add(p.id):S.sel.delete(p.id));render()};
+  if(S.sel.size){ const sel=()=>P.filter(p=>S.sel.has(p.id));
+    $('#b-seq').onclick=()=>{let ok=0,skip=0;sel().forEach(p=>addToSeq(p)?ok++:skip++);S.sel.clear();toast(`${ok} added to sequence`+(skip?`, ${skip} skipped (no email, already in a sequence, or closed)`:''));render()};
+    $('#b-pause').onclick=()=>{sel().forEach(p=>{if(!p.paused){p.paused=true;p.log.push({t:Date.now(),h:'Sequence paused'})}});toast(S.sel.size+' paused');S.sel.clear();render()};
+    $('#b-owner').onchange=e=>{if(!e.target.value)return;sel().forEach(p=>p.owner=e.target.value);toast('Owner set to '+e.target.value);S.sel.clear();render()};
+    $('#b-dq').onclick=()=>{sel().forEach(p=>{p.override='Disqualified';p.steps=p.steps.filter(s=>s.done);p.log.push({t:Date.now(),h:'Disqualified by a person'})});toast(S.sel.size+' disqualified');S.sel.clear();render()};
+    $('#b-none').onclick=()=>{S.sel.clear();render()}; }
+  rowClicks();
+}
+function addToSeq(p){ const st=status(p); if(!p.email||p.slot||!['Not contacted','Ready to contact'].includes(st)) return false;
+  p.slot=true; if(p.owner==='Unassigned')p.owner='Tarush'; let s0=T0+DAY;while([0,6].includes(new Date(s0).getDay()))s0+=DAY;p.steps=plan(p,s0); p.log.push({t:Date.now(),h:'Added to outreach sequence. Email 1 scheduled.'}); return true; }
+function vNeeds(){ const l=hir();
+  $('#main').innerHTML=head('Needs you',`${l.length} waiting · Outreach to these leads is stopped until you act.`)+`<section class="surface">${l.map(p=>{const a=assist(p);return `<div class="wrow k-${p.reply.type}" data-id="${p.id}" tabindex="0">
+    <div><div class="co">${esc(p.company)}</div><div class="meta"><span class="tg">${a.tag}</span> · ${fmt(p.reply.t)}</div><div class="meta">${esc([p.contact,[p.city,p.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</div></div>
+    <div><div class="q">“${esc(p.reply.text)}”</div><div class="nx"><span>Next</span>${esc(a.next)}</div></div>
+    <div class="acts"><button class="btn pri sm" data-open="${p.id}">${a.cta} →</button><details class="menu"><summary class="btn sm">More ▾</summary><div class="pop"><button data-a="meeting" data-p="${p.id}">Mark meeting booked</button><button data-a="notint" data-p="${p.id}">Mark not interested</button><button data-a="snooze" data-p="${p.id}">Snooze until tomorrow</button><button data-open="${p.id}">View lead</button></div></details></div></div>`}).join('')||'<div class="empty"><b>All clear</b>Nobody is waiting on you.</div>'}</section>`;
+  bindOpen(); rowClicks(); acts();
+}
+function segBar(key,opts){return `<div class="seg" role="group">${opts.map(([k,l])=>`<button data-f="${k}" aria-pressed="${(S[key]||'all')===k}">${l}</button>`).join('')}</div>`}
+function bindSeg(key){document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S[key]=b.dataset.f;render()})}
+function vTasks(){ const all=tasks(3), f=S.tf||'all', grp=x=>x.s.t<T0?'Overdue':x.s.t<T0+DAY?'Today':'Up next';
+  const l=all.filter(x=>f==='all'||(f==='call'&&x.s.kind==='call')||(f==='linkedin'&&x.s.kind==='linkedin')||(f==='today'&&grp(x)==='Today')||(f==='overdue'&&grp(x)==='Overdue'));
+  const due=all.filter(x=>x.s.t<T0+DAY).length;
+  const row=({p,s})=>`<div class="trow" data-id="${p.id}" tabindex="0"><span class="ty ${s.kind}">${s.kind==='call'?'Call':'LinkedIn'}</span>
+    <div><div class="co">${esc(p.company)}</div><div class="meta">${esc([p.contact,p.title,[p.city,p.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</div></div>
+    <div><div>${esc(s.label)}.</div><div class="meta">Reason: ${esc((p.signal||'fits the ICP').toLowerCase())} · due ${fmtD(s.t)}</div></div>
+    <div class="acts"><button class="btn pri sm" data-a="task" data-p="${p.id}" data-t="${s.t}">Mark done</button><button class="btn sm" data-a="skip" data-p="${p.id}" data-t="${s.t}">Skip</button></div></div>`;
+  $('#main').innerHTML=head('Tasks',`${due} manual action${due===1?'':'s'} due${all.length-due?' · '+(all.length-due)+' coming up':''}`)+segBar('tf',[['all','All'],['call','Calls'],['linkedin','LinkedIn'],['today','Due today'],['overdue','Overdue']])
+   +(['Overdue','Today','Up next'].map(g=>{const rs=l.filter(x=>grp(x)===g);return rs.length?`<section><h2 class="gh ${g==='Overdue'?'urgent':''}">${g} <span>${rs.length}</span></h2><div class="surface">${rs.map(row).join('')}</div></section>`:''}).join('')||'<div class="empty"><b>Nothing here</b>No manual tasks match this filter.</div>');
+  bindSeg('tf'); rowClicks(); acts();
+}
+function vOutbox(){ const all=outbox(), f=S.of||'all', isT=x=>x.s.t<T0+DAY, nT=all.filter(isT).length, nP=all.filter(x=>x.p.paused).length;
+  const l=all.filter(x=>f==='all'||(f==='today'&&isT(x))||(f==='tomorrow'&&!isT(x))||(f==='paused'&&x.p.paused));
+  $('#main').innerHTML=head('Outbox',`${all.length} scheduled send${all.length===1?'':'s'}`)+`
+   <div class="sum"><span><b class="num">${all.length}</b>scheduled</span><span><b class="num">${nT}</b>sending today</span><span><b class="num">${all.length-nT}</b>tomorrow</span>${nP?`<span class="warn"><b class="num">${nP}</b>paused</span>`:''}</div>
+   ${segBar('of',[['all','All'],['today','Today'],['tomorrow','Tomorrow'],['paused','Paused']])}
+   <div class="panel"><div class="scroll"><table><thead><tr><th>Send time</th><th>Company</th><th>Contact</th><th>Step</th><th>Source</th><th>Status</th><th></th></tr></thead><tbody class="click">${l.map(({p,s})=>`<tr data-id="${p.id}" tabindex="0" class="${p.paused?'pz':''}"><td class="num">${fmt(s.t)}</td><td><span class="lead-co">${esc(p.company)}</span></td><td>${esc(p.contact||'—')}</td><td>Email ${s.n}</td><td class="sc">${esc(p.source)}</td><td>${p.paused?'<span class="pill s-warn">Paused</span>':'<span class="pill s-good">Scheduled</span>'}</td><td style="text-align:right"><button class="btn sm" data-a="pause" data-p="${p.id}">${p.paused?'Resume':'Pause'}</button></td></tr>`).join('')}</tbody></table></div>${l.length?'':'<div class="empty" style="border:0"><b>Nothing scheduled</b>Add leads to a sequence to fill the outbox.</div>'}</div>`;
+  bindSeg('of'); rowClicks(); acts();
+}
+function vAnalytics(){ const r=range(), m=metrics(P,r);
+  const fun=[['Leads added',m.added],['Qualified',m.qual],['Contacted',m.newc],['Replied',m.replies],['Positive reply',m.pos],['Meeting booked',m.meet]], mx=Math.max(1,...fun.map(f=>f[1]));
+  const by=key=>{const g={};P.forEach(p=>{const k=p[key]||'—';(g[k]=g[k]||[]).push(p)});return Object.entries(g).map(([k,l])=>[k,metrics(l,r)]).sort((a,b)=>b[1].newc-a[1].newc)};
+  const tbl=(title,col,rows)=>`<div class="list"><h2>${title}</h2><div class="panel scroll"><table><thead><tr><th>${col}</th><th>Contacted</th><th>Replies</th><th>Reply rate</th><th>Positive</th><th>Meetings</th></tr></thead><tbody>${rows.map(([k,x])=>`<tr><td>${esc(k)}</td><td class="num">${x.newc}</td><td class="num">${x.replies}</td><td class="num">${pct(x.replies,x.newc)}</td><td class="num">${x.pos}</td><td class="num">${x.meet}</td></tr>`).join('')}</tbody></table></div></div>`;
+  $('#main').innerHTML=head('Analytics',RL[S.range])+rangeBar('range')+`
+   <div class="hero">${[['Emails sent',m.emails],['Follow-ups sent',m.fu],['LinkedIn actions',m.li],['Calls',m.calls],['Reply rate',pct(m.replies,m.newc)],['Meetings ÷ contacted',pct(m.meet,m.newc)]].map(([l,v])=>`<div class="kpi" style="cursor:default"><span class="l">${l}</span><span class="v">${v}</span></div>`).join('')}</div>
+   <div class="panel pad list"><h2>Funnel</h2><div class="funnel">${fun.map(([l,v])=>`<span>${l}</span><div><div class="b" style="width:${100*v/mx}%"></div></div><b class="num">${v.toLocaleString()}</b>`).join('')}</div>
+    <div class="muted small">Replies and meetings are counted in the period they happened, so short ranges can show rates higher than the same group of leads will end at.</div></div>
+   <div class="grid2">${tbl('By source','Source',by('source'))}${tbl('By signal','Signal',by('signal'))}${tbl('By state','State',by('state'))}${tbl('By industry','Industry',by('industry'))}</div>`;
+  bindRange('range');
+}
+/* ================= lead record ================= */
+function drawer(){ const o=$('#overlay'); const p=P.find(x=>x.id===S.open); if(!p){o.innerHTML='';return}
+  const st=status(p), need=st==='Needs you', a=p.reply&&p.reply.type!=='notint'?assist(p):null;
+  const ev=[{t:p.added,h:p.source==='Discovered by BestMate'?'Discovered, enriched and scored':'Added to the system · '+p.source}];
+  p.steps.forEach(s=>ev.push({t:s.t,future:!s.done,h:(s.done?'':'Scheduled: ')+(s.kind==='email'?'Email '+s.n+(s.done?' sent':''):s.kind==='linkedin'?'LinkedIn: '+s.label:'Call: '+s.label)+(s.skipped?' (skipped)':''),body:s.kind==='email'?emailBody(p,s.n):null}));
+  if(p.reply) ev.push({t:p.reply.t,h:(p.reply.demo?'Demo: simulated reply. ':'Reply received. ')+'Sequence stopped.',quote:p.reply.text});
+  if(p.meeting) ev.push({t:p.meeting,h:'Meeting booked'});
+  p.log.forEach(l=>ev.push(l)); ev.sort((x,y)=>x.t-y.t);
+  const nextRec=need?a.next:st==='Meeting booked'?'Hold the call. Record the outcome afterwards.':p.score==null&&!p.slot?'Waiting on enrichment and scoring. You can also add it to a sequence now.':st==='Ready to contact'&&!p.slot?'Qualified. Add to a sequence, or it takes the next free daily slot.':STOP.includes(st)?'No action.':nextAction(p);
+  const custom=Object.entries(p.custom||{});
+  o.innerHTML=`<div class="shade" id="shade"></div><aside class="drawer" role="dialog" aria-label="Lead record">
+   <div class="row" style="justify-content:space-between"><span class="row">${pill(st)}${p.paused?'<span class="pill s-warn">Paused</span>':''}<span class="pill s-mute">${esc(p.source)}</span></span><button class="btn sm" id="close">Close</button></div>
+   <div><h2>${esc(p.company)}</h2><div class="muted">${esc([p.contact,p.title].filter(Boolean).join(', '))}${p.industry?' · '+esc(p.industry):''}${p.city?' · '+esc(p.city)+(p.state?', '+p.state:''):''}</div></div>
+   ${need?`<div class="sec alert"><h3>Their response · ${fmt(p.reply.t)}</h3><div class="quote">“${esc(p.reply.text)}”</div>
+     <h3 style="margin-top:12px">AI summary</h3><div>${esc(a.sum)}</div>
+     <h3 style="margin-top:12px">Suggested response · edit before sending</h3><textarea id="draft" rows="8">${esc(a.draft)}</textarea>
+     <div class="row" style="margin-top:8px"><button class="btn pri" data-a="send" data-p="${p.id}">Send reply</button><button class="btn" id="copy">Copy</button></div></div>`:''}
+   <div class="sec"><h3>Next recommended action</h3>${esc(nextRec)}</div>
+   <div class="sec"><h3>Contact information</h3><div class="kv"><span>Email</span><span>${esc(p.email||'—')}</span><span>Phone</span><span>${esc(p.phone||'—')}</span><span>LinkedIn</span><span>${esc(p.linkedin||'—')}</span><span>Website</span><span>${esc(p.website||'—')}</span><span>Owner</span><span>${esc(p.owner)}</span>${p.tags&&p.tags.length?`<span>Tags</span><span>${p.tags.map(t=>`<span class="pill s-mute">${esc(t)}</span>`).join(' ')}</span>`:''}${custom.map(([k,v])=>`<span>${esc(k)}</span><span>${esc(v)}</span>`).join('')}</div></div>
+   <div class="sec"><h3>Company research</h3>${p.found&&p.found.length?`<ul>${p.found.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:'<span class="muted">No research yet. This fills in when enrichment runs.</span>'}
+     <h3 style="margin-top:12px">Why selected</h3>${p.why?esc(p.why):p.dq?`Disqualified: ${esc(p.dq)}.`:p.score==null?'<span class="muted">Not scored yet. Added by a person, so it can be sequenced without a score.</span>':`Score <b class="num">${p.score}</b> = fit ${p.fit} + signals ${p.sigPts}. Primary signal: <b>${esc(p.signal)}</b>.`}</div>
+   <div class="sec"><h3>Outreach history</h3><div class="tl">${ev.map(e=>`<div class="e ${e.future?'future':''}"><span class="t">${fmt(e.t)}</span><div>${esc(e.h)}${e.quote?`<div class="quote" style="margin-top:6px">“${esc(e.quote)}”</div>`:''}${e.body?`<details><summary>View message</summary><div class="msg">${esc(e.body)}</div></details>`:''}</div></div>`).join('')}</div></div>
+   ${!p.steps.length&&!p.reply&&st!=='Disqualified'?`<div class="sec"><h3>Email 1 draft</h3><div class="meta" style="margin-bottom:6px">Subject: ${esc(subjectFor(p))}</div><div class="msg" style="margin-top:0">${esc(emailBody(p,1))}</div>
+     <div class="row" style="margin-top:10px"><input type="email" id="sendTo" value="${esc(p.email||S.demoTo||'')}" placeholder="recipient@example.com" aria-label="Send to" style="flex:1 1 220px"><button class="btn pri sm" id="sendNow">Send now</button></div><div class="meta" style="margin-top:4px">Sends this email from the connected mailbox. Works on the deployed site, to approved recipients only.</div></div>`:''}
+   ${!p.remote&&!p.reply&&!['Disqualified','Not interested'].includes(st)?`<div class="sec"><h3>Demo control</h3><div class="row"><select id="simType" aria-label="Reply type"><option value="pricing">Asks about price</option><option value="interested">Interested</option><option value="question">Question</option><option value="objection">Objection</option></select><button class="btn sm" data-a="sim" data-p="${p.id}">Simulate a reply</button><span class="meta">Marks email 1 as sent and adds a pretend reply.</span></div></div>`:''}
+   <div class="sec"><h3>Actions</h3><div class="row">
+     ${!p.slot&&['Not contacted','Ready to contact'].includes(st)?`<button class="btn pri sm" data-a="seq" data-p="${p.id}">Add to sequence</button>`:''}
+     <button class="btn sm" data-a="meeting" data-p="${p.id}">Meeting booked</button>
+     ${need?`<button class="btn sm" data-a="handled" data-p="${p.id}">Handled elsewhere</button>`:''}
+     ${p.slot&&!STOP.includes(st)?`<button class="btn sm" data-a="pause" data-p="${p.id}">${p.paused?'Resume sequence':'Pause sequence'}</button>`:''}
+     <button class="btn sm dan" data-a="notint" data-p="${p.id}">Not interested</button><button class="btn sm dan" data-a="dq" data-p="${p.id}">Disqualify</button></div>
+     <div class="row" style="margin-top:10px;align-items:flex-start"><textarea id="note" rows="2" style="flex:1 1 240px" placeholder="Add a note to the history"></textarea><button class="btn sm" data-a="note" data-p="${p.id}">Add note</button></div></div>
+  </aside>`;
+  $('#close').onclick=$('#shade').onclick=()=>{S.open=null;drawer()};
+  if($('#copy')) $('#copy').onclick=()=>{const d=$('#draft');navigator.clipboard.writeText(d.value).then(()=>toast('Copied'),()=>{d.select();toast('Select and copy the text')})};
+  const sb=$('#sendNow'); if(sb) sb.onclick=async()=>{ const to=$('#sendTo').value.trim(); if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return toast('Enter a valid email address');
+    S.demoTo=to; sb.disabled=true; sb.textContent='Sending…';
+    try{ const res=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to,subject:subjectFor(p),text:emailBody(p,1)})});
+      const j=await res.json().catch(()=>({})); if(!res.ok) throw new Error(j.error||('server returned '+res.status));
+      const t=Date.now(); p.steps=[{t,kind:'email',n:1,done:true}]; p.slot=true; if(p.owner==='Unassigned')p.owner='Tarush';
+      p.log.push({t:t+1,h:'Email 1 sent to '+to+' from the connected mailbox'}); toast('Sent to '+to); render();
+    }catch(e){ sb.disabled=false; sb.textContent='Send now'; toast('Not sent: '+(/fetch|404|405|NetworkError/i.test(e.message)?'sending only works on the deployed site':e.message)); } };
+  acts(o);
+}
+function toast(t){document.querySelectorAll('.toast').forEach(x=>x.remove());const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
+function acts(root=document){ root.querySelectorAll('[data-a]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+  const p=P.find(x=>x.id===+b.dataset.p), a=b.dataset.a, t=Date.now(), stop=()=>{p.steps=p.steps.filter(s=>s.done)};
+  if(a==='meeting'){p.override='Meeting booked';p.meeting=p.meeting||t;if(p.reply)p.reply.handled=true;stop();p.log.push({t,h:'Meeting booked, marked by a person'});toast('Meeting booked')}
+  else if(a==='send'){const v=$('#draft').value.trim();if(!v)return;p.reply.handled=true;p.log.push({t,h:'Reply sent by '+(p.owner==='Unassigned'?'a person':p.owner),quote:v});toast('Reply logged. Sending goes live when the mailbox is connected.')}
+  else if(a==='handled'){p.reply.handled=true;p.log.push({t,h:'Handled outside the dashboard. Automation stays off.'});toast('Marked as replied')}
+  else if(a==='notint'){p.override='Not interested';stop();p.log.push({t,h:'Marked not interested. Added to the do-not-contact list.'});toast('Added to do-not-contact list')}
+  else if(a==='dq'){p.override='Disqualified';stop();p.log.push({t,h:'Disqualified by a person'});toast('Disqualified')}
+  else if(a==='pause'){p.paused=!p.paused;p.log.push({t,h:p.paused?'Sequence paused':'Sequence resumed'});toast(p.paused?'Sequence paused':'Sequence resumed')}
+  else if(a==='sim'){const ty=$('#simType').value;if(!p.steps.some(x=>x.kind==='email'&&x.done))p.steps=[{t:t-36e5,kind:'email',n:1,done:true}];else stop();p.slot=true;if(p.owner==='Unassigned')p.owner='Tarush';p.reply={t,type:ty,text:pick(REPLY[ty][0]),positive:REPLY[ty][1],handled:false,demo:true};p.log.push({t:t+1,h:'Demo: reply simulated'});toast('Reply simulated. See Needs you.')}
+  else if(a==='snooze'){p.snoozed=true;p.log.push({t,h:'Snoozed until tomorrow'});toast('Snoozed until tomorrow')}
+  else if(a==='seq'){toast(addToSeq(p)?'Added to sequence':'Needs an email address first')}
+  else if(a==='task'||a==='skip'){const s=p.steps.find(s=>s.t===+b.dataset.t);s.done=true;s.skipped=a==='skip';s.t=Math.min(s.t,t);toast(a==='task'?'Logged':'Skipped')}
+  else if(a==='note'){const v=$('#note').value.trim();if(!v)return;p.log.push({t,h:'Note: '+v});toast('Note added')}
+  if(p&&p.remote){ if(a==='handled'||a==='send')p.override='Replied'; if(a==='seq')p.override='Ready to contact'; if(['meeting','notint','dq','handled','send','note','seq'].includes(a)) syncLead(p,a); }
+  render(); }); }
+
+/* ================= import / add leads ================= */
+const FIELDS=[['company','Company name'],['contact','Contact name'],['title','Job title'],['email','Email'],['phone','Phone'],['linkedin','LinkedIn URL'],['website','Website'],['location','Location'],['industry','Industry'],['notes','Notes'],['source','Lead source'],['tags','Tags']];
+const GUESS={company:/company|business|account|organi[sz]ation/i,contact:/contact|^name$|full.?name|owner|first.?name/i,title:/title|role|position/i,email:/e-?mail/i,phone:/phone|mobile|tel/i,linkedin:/linkedin/i,website:/web|url|domain|site/i,location:/location|city|address/i,industry:/industry|trade|category|service/i,notes:/note|comment/i,source:/source/i,tags:/tag/i};
+const SAMPLE_CSV=`Company Name,Contact Name,Job Title,Email,Phone,LinkedIn URL,Website,City,Industry,Notes,Crew Size
+Palmetto Comfort Air,Renee Albright,Owner,renee@palmettocomfort.example,(555) 0142,linkedin.com/in/example-renee,palmettocomfort.example,"Charlotte, NC",HVAC,Met at the home show,12
+Twin Rivers Plumbing,Hank Doyle,Owner,hank@twinrivers.example,(555) 0177,,twinrivers.example,"Houston, TX",Plumbing,,9
+${P[3].company},${P[3].contact},Owner,${P[3].email},,,,"${P[3].city}, ${P[3].state}",${P[3].industry},Already in the system,
+Gulfside Electric,Mara Quinn,General manager,mara-at-gulfside,(555) 0119,,gulfside.example,"Tampa, FL",Electrical,Email looks wrong,14
+,Joe Park,Owner,joe@noname.example,,,,"Austin, TX",Roofing,No company name,
+Red Mesa Roofing,Cal Ortiz,Owner,,,,,"Tucson, AZ",Roofing,No contact details at all,11
+Twin Rivers Plumbing,Hank Doyle,Owner,hank@twinrivers.example,,,,"Houston, TX",Plumbing,Same lead twice in this file,
+Lakeshore Garage Doors,Priya Nair,Operations manager,priya@lakeshoredoors.example,(555) 0163,,lakeshoredoors.example,"Orlando, FL",Garage doors,Referred by a customer,8`;
+let M=null;
+function parseCSV(t){const rows=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+  else if(ch==='"')q=true; else if(ch===','){r.push(c);c=''}
+  else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);c='';if(r.some(x=>x.trim()))rows.push(r);r=[]}
+  else c+=ch}
+  r.push(c); if(r.some(x=>x.trim()))rows.push(r); return rows}
+function openModal(){ M={tab:'import',step:1,err:'',dup:'skip',source:'CSV Import',keep:true,cf:[]}; modal(); }
+function loadRows(rows,name){ if(rows.length<2){M.err='That file has no data rows.';return modal()}
+  M.headers=rows[0].map(h=>String(h).trim()); M.rows=rows.slice(1).map(r=>r.map(c=>String(c==null?'':c).trim())); M.file=name; M.err='';
+  M.map={}; const used=new Set(); ['company','linkedin','email','phone','title','contact','website','location','industry','notes','source','tags'].forEach(f=>{const i=M.headers.findIndex((h,j)=>!used.has(j)&&GUESS[f].test(h)); if(i>=0){M.map[f]=i;used.add(i)}});
+  M.step=2; modal(); }
+const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const domain=u=>norm(String(u||'').replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0]);
+function splitLoc(l){const m=String(l||'').match(/^(.*?),\s*([A-Za-z]{2})\b/);return m?{city:m[1].trim(),state:m[2].toUpperCase()}:{city:String(l||'').trim(),state:''}}
+function findDup(d,extra){ const loc=splitLoc(d.location), ck=norm(d.company)+'|'+norm(loc.city);
+  const hit=p=>(d.email&&p.email&&p.email.toLowerCase()===d.email.toLowerCase())||(d.linkedin&&p.linkedin&&norm(p.linkedin)===norm(d.linkedin))||(d.website&&p.website&&domain(p.website)===domain(d.website))||(d.company&&norm(p.company)+'|'+norm(p.city)===ck);
+  return P.find(hit)||(extra||[]).find(hit); }
+function analyse(){ const seen=[]; M.out=M.rows.map(r=>{ const d={}; FIELDS.forEach(([f])=>d[f]=M.map[f]!=null&&M.map[f]!==''?r[M.map[f]]||'':'');
+    d.custom={}; if(M.keep) M.headers.forEach((h,i)=>{if(!Object.values(M.map).includes(i)&&r[i])d.custom[h]=r[i]});
+    const flags=[]; let action='import';
+    if(!d.company){flags.push(['Missing company','s-bad']);action='invalid'}
+    if(d.email&&!validEmail(d.email)){flags.push(['Invalid email','s-bad']);d.email=''}
+    if(action!=='invalid'&&!d.email&&!d.phone&&!d.linkedin)flags.push(['No way to contact','s-warn']); else if(action!=='invalid'&&!d.email)flags.push(['No email','s-warn']);
+    if(action!=='invalid'){ const loc=splitLoc(d.location), self={company:d.company,city:loc.city,email:d.email,linkedin:d.linkedin,website:d.website};
+      const ex=findDup(d); const inFile=!ex&&findDup(d,seen)&&!P.includes(findDup(d,seen));
+      if(ex){flags.push(['Duplicate of existing lead','s-info']);action=M.dup;d._ex=ex}
+      else if(inFile){flags.push(['Repeated in this file','s-info']);action='skip'}
+      else seen.push(self); }
+    return {d,flags,action}; }); }
+function makeLead(d,source){ const loc=splitLoc(d.location);
+  return {id:nextId++,company:d.company,industry:d.industry||'',city:loc.city,state:loc.state,contact:d.contact||'',title:d.title||'',email:d.email||'',phone:d.phone||'',linkedin:d.linkedin||'',website:d.website||'',
+    source:SOURCES.includes(d.source)?d.source:source,owner:'Unassigned',tags:String(d.tags||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean),custom:d.custom||{},seg:'—',fit:null,sigPts:null,score:null,tier:'Unscored',signal:'',added:Date.now(),
+    found:[],steps:[],log:d.notes?[{t:Date.now()+1,h:'Note: '+d.notes}]:[],reply:null,meeting:null,paused:false,slot:false,dq:null}; }
+function applyTo(ex,d,mode){ ['contact','title','email','phone','linkedin','website','industry'].forEach(k=>{if(d[k]&&(mode==='update'||!ex[k]))ex[k]=d[k]});
+  const loc=splitLoc(d.location); if(loc.city&&(mode==='update'||!ex.city)){ex.city=loc.city;ex.state=loc.state||ex.state}
+  Object.assign(ex.custom,mode==='update'?d.custom:{...d.custom,...ex.custom}); ex.log.push({t:Date.now(),h:(mode==='update'?'Updated':'Merged')+' from import'+(M.file?' · '+M.file:'')}); }
+function modal(){ const el=$('#modal'); if(!M){el.innerHTML='';return}
+  let body='';
+  if(M.tab==='import'){
+    if(M.step===1) body=`<div class="drop"><b>Upload a CSV or Excel file</b><span class="muted">First row should be column headers. You'll map the columns next.</span><input type="file" id="file" accept=".csv,.xlsx,.xls" aria-label="Choose file"><button class="link" id="useSample">No file handy? Try a sample file</button></div>${M.err?`<div class="err">${esc(M.err)}</div>`:''}`;
+    else if(M.step===2) body=`<div class="muted">${esc(M.file)} · ${M.rows.length} rows. Match your columns to the lead fields. Company name is required.</div>
+      <div class="map">${FIELDS.map(([f,l])=>`<label>${l}${f==='company'?' *':''}<select data-map="${f}">${opts(M.headers.map((h,i)=>[String(i),h]),M.map[f]!=null?String(M.map[f]):'','Not in file')}</select></label>`).join('')}</div>
+      <label class="row"><input type="checkbox" id="keep" ${M.keep?'checked':''}> Keep unmapped columns as custom fields</label>
+      <label class="row" style="font-weight:700">Lead source for this import <select id="msrc">${opts(SOURCES.filter(s=>s!=='Discovered by BestMate'),M.source)}</select></label>
+      ${M.err?`<div class="err">${esc(M.err)}</div>`:''}
+      <div class="row" style="justify-content:flex-end"><button class="btn" id="back">Back</button><button class="btn pri" id="toPrev">Preview import</button></div>`;
+    else { analyse(); const c=a=>M.out.filter(o=>o.action===a).length, nImp=c('import'), nDup=M.out.filter(o=>o.d._ex).length;
+      body=`<div class="row"><span class="pill s-good">${nImp} new</span><span class="pill s-info">${nDup} duplicates</span><span class="pill s-bad">${c('invalid')} can't be imported</span><span class="pill s-warn">${M.out.filter(o=>o.flags.some(f=>f[1]==='s-warn')).length} with warnings</span></div>
+      <div class="row"><b>Duplicates of existing leads:</b><div class="seg">${[['skip','Skip'],['merge','Merge (fill blanks)'],['update','Update (overwrite)']].map(([k,l])=>`<button data-dup="${k}" aria-pressed="${M.dup===k}">${l}</button>`).join('')}</div></div>
+      <div class="panel scroll" style="max-height:340px;overflow-y:auto"><table><thead><tr><th>Row</th><th>Company</th><th>Contact</th><th>Email</th><th>Location</th><th>Checks</th><th>Result</th></tr></thead><tbody>${M.out.slice(0,100).map((o,i)=>`<tr><td class="num">${i+2}</td><td><b>${esc(o.d.company||'—')}</b></td><td>${esc(o.d.contact||'—')}</td><td>${esc(o.d.email||'—')}</td><td>${esc(o.d.location||'—')}</td><td>${o.flags.map(f=>`<span class="pill ${f[1]}">${f[0]}</span>`).join(' ')||'<span class="pill s-good">OK</span>'}</td><td>${{import:'Import',skip:'Skip',merge:'Merge',update:'Update',invalid:'Not imported'}[o.action]}</td></tr>`).join('')}</tbody></table></div>
+      ${M.out.length>100?`<div class="muted small">Showing the first 100 of ${M.out.length} rows.</div>`:''}
+      <div class="muted small">Imported leads join the same workflow as discovered ones: enrich, qualify, research, personalize, sequence.</div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" id="back">Back</button><button class="btn pri" id="confirm" ${nImp+(M.dup==='skip'?0:nDup)?'':'disabled'}>Import ${nImp} lead${nImp===1?'':'s'}${M.dup!=='skip'&&nDup?` and ${M.dup} ${nDup}`:''}</button></div>`; }
+  } else body=`<form id="addForm" class="list" novalidate><div class="form">
+      <label>Company name *<input type="text" id="a-company"></label><label>Contact name<input type="text" id="a-contact"></label>
+      <label>Job title<input type="text" id="a-title"></label><label>Email<input type="email" id="a-email"></label>
+      <label>Phone<input type="tel" id="a-phone"></label><label>LinkedIn URL<input type="url" id="a-linkedin"></label>
+      <label>Website<input type="text" id="a-website"></label><label>Location<input type="text" id="a-location" placeholder="City, ST"></label>
+      <label>Industry<input type="text" id="a-industry"></label><label>Lead source<select id="a-source">${opts(SOURCES.filter(s=>s!=='Discovered by BestMate'&&s!=='CSV Import'),'Manually Added')}</select></label>
+      <label>Tags<input type="text" id="a-tags" placeholder="Comma separated"></label>
+      <label class="wide">Notes<textarea id="a-notes" rows="2"></textarea></label></div>
+      <div class="list" style="gap:8px"><b style="font-size:13.5px">Custom fields</b>${M.cf.map((c,i)=>`<div class="row"><input type="text" data-cfk="${i}" placeholder="Field name" value="${esc(c[0])}" aria-label="Custom field name"><input type="text" data-cfv="${i}" placeholder="Value" value="${esc(c[1])}" aria-label="Custom field value"></div>`).join('')}<div><button type="button" class="link" id="addCf">+ Add custom field</button></div></div>
+      ${M.err?`<div class="err">${M.err}</div>`:''}
+      <div class="row" style="justify-content:flex-end"><label class="row" style="margin-right:auto"><input type="checkbox" id="a-seq"> Add to outreach sequence now</label><button type="submit" class="btn pri">Add lead</button></div></form>`;
+  el.innerHTML=`<div class="modal"><div class="shade" id="mshade"></div><div class="box" role="dialog" aria-label="Import or add leads">
+    <div class="row" style="justify-content:space-between"><h2 style="font-size:20px">Import / add leads</h2><button class="btn sm" id="mclose">Close</button></div>
+    <div class="seg" style="align-self:flex-start"><button data-tab="import" aria-pressed="${M.tab==='import'}">Import file</button><button data-tab="manual" aria-pressed="${M.tab==='manual'}">Add manually</button></div>
+    ${M.tab==='import'?`<div class="steps">${['Upload','Map columns','Preview and confirm'].map((s,i)=>M.step===i+1?`<b>${i+1}. ${s}</b>`:`<span>${i+1}. ${s}</span>`).join('<span>›</span>')}</div>`:''}
+    ${body}</div></div>`;
+  const close=()=>{M=null;modal()}; $('#mclose').onclick=$('#mshade').onclick=close;
+  el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{keepForm();M.tab=b.dataset.tab;M.err='';modal();restoreForm()});
+  if($('#file')) $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+    if(/\.csv$/i.test(f.name)){rd.onload=()=>loadRows(parseCSV(String(rd.result)),f.name);rd.readAsText(f)}
+    else{ if(typeof XLSX==='undefined'){M.err='Excel reading is unavailable right now. Save the sheet as CSV and upload that.';return modal()}
+      rd.onload=()=>{try{const wb=XLSX.read(new Uint8Array(rd.result),{type:'array'});loadRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}).filter(r=>r.some(c=>String(c).trim())),f.name)}catch(x){M.err='Could not read that file. Check it is a valid .xlsx or .csv.';modal()}};rd.readAsArrayBuffer(f)} };
+  if($('#useSample')) $('#useSample').onclick=()=>loadRows(parseCSV(SAMPLE_CSV),'sample-leads.csv');
+  el.querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{M.map[s.dataset.map]=s.value===''?null:+s.value});
+  if($('#keep')) $('#keep').onchange=e=>M.keep=e.target.checked; if($('#msrc')) $('#msrc').onchange=e=>M.source=e.target.value;
+  if($('#back')) $('#back').onclick=()=>{M.step--;M.err='';modal()};
+  if($('#toPrev')) $('#toPrev').onclick=()=>{if(M.map.company==null){M.err='Choose which column holds the company name.';return modal()}M.err='';M.step=3;modal()};
+  el.querySelectorAll('[data-dup]').forEach(b=>b.onclick=()=>{M.dup=b.dataset.dup;modal()});
+  if($('#confirm')) $('#confirm').onclick=()=>{let n=0,u=0;M.out.forEach(o=>{if(o.action==='import'){const l=makeLead(o.d,M.source);l.log.unshift({t:Date.now(),h:'Imported from '+M.file});addLead(l);n++}else if(o.action==='merge'||o.action==='update'){applyTo(o.d._ex,o.d,o.action);u++}});
+    const src=M.source;M=null;modal();toast(`${n} imported`+(u?`, ${u} existing updated`:''));S.sort={k:'default',d:-1};go('leads',{source:src})};
+  if($('#addCf')) $('#addCf').onclick=()=>{keepForm();M.cf.push(['','']);modal();restoreForm()};
+  if($('#addForm')) $('#addForm').onsubmit=e=>{e.preventDefault();keepForm();const d={...M.form};d.custom={};M.cf.forEach(([k,v])=>{if(k.trim()&&v.trim())d.custom[k.trim()]=v.trim()});
+    if(!d.company){M.err='Company name is required.';modal();return restoreForm()}
+    if(d.email&&!validEmail(d.email)){M.err='That email address does not look right.';modal();return restoreForm()}
+    const ex=findDup(d); if(ex&&!M.force){M.force=true;M.err=`${esc(ex.company)}${ex.city?' in '+esc(ex.city):''} is already in the system (${esc(status(ex))}). Press Add lead again to add it anyway.`;modal();return restoreForm()}
+    const l=makeLead(d,d.source);l.source=d.source;addLead(l);const seq=M.seq&&addToSeq(l);M=null;modal();toast(seq?'Lead added and sequenced':'Lead added');S.sort={k:'default',d:-1};go('leads',{source:l.source});S.open=l.id;drawer()};
+}
+const AF=['company','contact','title','email','phone','linkedin','website','location','industry','source','tags','notes'];
+function keepForm(){ if(!$('#addForm'))return; M.form={}; AF.forEach(k=>M.form[k]=$('#a-'+k).value.trim()); M.seq=$('#a-seq').checked;
+  document.querySelectorAll('[data-cfk]').forEach(i=>M.cf[+i.dataset.cfk][0]=i.value); document.querySelectorAll('[data-cfv]').forEach(i=>M.cf[+i.dataset.cfv][1]=i.value); }
+function restoreForm(){ if(!$('#addForm')||!M.form)return; AF.forEach(k=>{if(M.form[k]!=null)$('#a-'+k).value=M.form[k]}); $('#a-seq').checked=!!M.seq; }
+render();
+</script>
+
+</body>
+</html>
